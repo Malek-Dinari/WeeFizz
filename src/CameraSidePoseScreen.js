@@ -1,177 +1,176 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet, Button } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
-import { Camera, useCameraDevices } from 'react-native-vision-camera';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
-import { NativeModules } from 'react-native';
-const { PoseDetectorModuleSide } = NativeModules;
+import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
+import '@tensorflow/tfjs';
+import * as poseDetection from '@tensorflow-models/pose-detection';
+import '@tensorflow/tfjs-backend-webgl';
 
 const CameraSidePoseScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const [hasPermission, setHasPermission] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false);
   const [isPoseCorrect, setIsPoseCorrect] = useState(false);
   const [indicatorSource, setIndicatorSource] = useState(require('../assets/orangelight.png'));
-  const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
-  const isFocused = useIsFocused();
-  const devices = useCameraDevices();
-  const device = route.params.selectedOption === 'seul' ? devices.front : devices.back;
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, frontposePhoto, productUrl } = route.params;
 
-  // Route parameters
-  const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, productUrl, frontposePhoto } = route.params;
+  const detectorRef = useRef(null);
+  const devices = useCameraDevices();
+  const device = selectedOption === 'seul' ? devices.front : devices.back;
 
   useEffect(() => {
     (async () => {
-      try {
-        const cameraPermission = await Camera.requestCameraPermission();
-        setHasPermission(cameraPermission === 'authorized');
-      } catch (error) {
-        console.error('Error requesting camera permissions:', error);
-      }
+      const status = await Camera.requestCameraPermission();
+      setHasPermission(status === 'authorized');
+    })();
+
+    (async () => {
+      await tf.ready();
+      detectorRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
     })();
   }, []);
 
-  useEffect(() => {
-    if (!isFocused) return;
-    if (cameraRef.current) {
-      const interval = setInterval(() => {
-        handlePoseDetection();
-      }, 1000); // Detect pose every second
+  const frameProcessor = useFrameProcessor(async (frame) => {
+    if (!detectorRef.current) return;
 
-      return () => clearInterval(interval);
-    }
-  }, [isFocused]);
+    const { width, height, data } = frame;
+    const imageData = tf.tensor3d(new Uint8Array(data), [height, width, 3]);
 
-  if (hasPermission === null) {
-    return <View><Text>Requesting camera permission...</Text></View>;
-  }
-  if (hasPermission === false) {
-    return <View><Text>No access to camera</Text></View>;
-  }
-
-  const handlePoseDetection = async () => {
     try {
-      if (cameraRef.current) {
-        const photo = await cameraRef.current.takePhoto({
-          qualityPrioritization: 'balanced',
-          skipMetadata: true
-        });
-
-        const base64Image = await fetch(photo.path).then(res => res.blob()).then(blob => blob.arrayBuffer()).then(buffer => Buffer.from(buffer).toString('base64'));
-
-        PoseDetectorModuleSide.processImage(base64Image).then(result => {
-          if (result) {
-            const poseIsCorrect = checkPose(result);
-            setIsPoseCorrect(poseIsCorrect);
-            setIndicatorSource(poseIsCorrect
-              ? require('../assets/greenlight.png')
-              : require('../assets/orangelight.png')
-            );
-          }
-        }).catch(error => {
-          console.error('Error during pose detection:', error);
-        });
+      const poses = await detectorRef.current.estimatePoses(imageData, { flipHorizontal: false });
+      if (poses && poses.length > 0) {
+        const keypoints = poses[0].keypoints;
+        const poseIsCorrect = checkPose(keypoints);
+        setIsPoseCorrect(poseIsCorrect);
+        setIndicatorSource(
+          poseIsCorrect
+            ? require('../assets/greenlight.png')
+            : require('../assets/orangelight.png')
+        );
       }
     } catch (error) {
-      console.error('Error capturing photo:', error);
+      console.error('Error during pose detection:', error);
+    } finally {
+      imageData.dispose();
     }
-  };
+  }, []);
 
-  const checkPose = (poseData) => {
-    const keypointNames = ['LEFT_WRIST', 'RIGHT_WRIST', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', 'LEFT_KNEE', 'RIGHT_KNEE', 'LEFT_ANKLE', 'RIGHT_ANKLE'];
+  const checkPose = (keypoints) => {
+    const keypointNames = ['left_shoulder', 'right_shoulder', 'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'];
     const keypointMap = {};
+    keypoints.forEach(k => keypointMap[k.name] = k);
 
-    keypointNames.forEach(name => {
-      if (poseData[name]) {
-        keypointMap[name] = poseData[name];
-      }
-    });
+    for (const name of keypointNames) {
+      if (!keypointMap[name]) return false;
+    }
 
-    // Ensure all required keypoints are present
-    if (Object.keys(keypointMap).length < keypointNames.length) return false;
+    const shouldersAligned = Math.abs(keypointMap['left_shoulder'].y - keypointMap['right_shoulder'].y) < 0.1;
+    const hipsAligned = Math.abs(keypointMap['left_hip'].y - keypointMap['right_hip'].y) < 0.1;
+    const kneesAligned = Math.abs(keypointMap['left_knee'].y - keypointMap['right_knee'].y) < 0.1;
+    const anklesAligned = Math.abs(keypointMap['left_ankle'].y - keypointMap['right_ankle'].y) < 0.1;
 
-    // Pose validation logic
-    const wristToHipDistanceThreshold = 0.1; // Adjust this threshold as necessary
-    const shoulderLevelThreshold = 0.1; // Adjust this threshold as necessary
-    const kneeStraightThreshold = 0.1; // Adjust this threshold as necessary
-    const ankleStraightThreshold = 0.1; // Adjust this threshold as necessary
-
-    // The wrists should be close to the hips on the side facing the camera
-    const wristToHipDistance = Math.abs(keypointMap['LEFT_WRIST'].x - keypointMap['LEFT_HIP'].x) < wristToHipDistanceThreshold
-                            && Math.abs(keypointMap['RIGHT_WRIST'].x - keypointMap['RIGHT_HIP'].x) < wristToHipDistanceThreshold;
-
-    // Shoulders should be level
-    const shouldersAreLevel = Math.abs(keypointMap['LEFT_SHOULDER'].y - keypointMap['RIGHT_SHOULDER'].y) < shoulderLevelThreshold;
-
-    // Knees and ankles should be straight and relatively aligned
-    const kneesAreStraight = Math.abs(keypointMap['LEFT_KNEE'].x - keypointMap['RIGHT_KNEE'].x) < kneeStraightThreshold;
-    const anklesAreStraight = Math.abs(keypointMap['LEFT_ANKLE'].x - keypointMap['RIGHT_ANKLE'].x) < ankleStraightThreshold;
-
-    return wristToHipDistance && shouldersAreLevel && kneesAreStraight && anklesAreStraight;
+    return shouldersAligned && hipsAligned && kneesAligned && anklesAligned;
   };
 
   const handleCapture = async () => {
-    if (isPoseCorrect && cameraRef.current) {
-      setLoading(true);
-      try {
-        const photo = await cameraRef.current.takePhoto({
-          qualityPrioritization: 'balanced',
-          skipMetadata: true
-        });
-
-        navigation.navigate('ValidationSidePoseScreen', {
-          gender,
-          height,
-          weight,
-          hunit,
-          wunit,
-          comfort,
-          selectedMorphology,
-          selectedOption,
-          productUrl,
-          frontposePhoto,  // Pass the front pose photo URI
-          sideposePhoto: photo.path // Pass the captured side pose photo URI
-        });
-      } catch (error) {
-        console.error('Error capturing photo:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (cameraRef.current && isPoseCorrect) {
+      const photo = await cameraRef.current.takePhoto({
+        skipProcessing: true,
+      });
+      navigation.navigate('ValidationSidePoseScreen', {
+        gender,
+        height,
+        hunit,
+        weight,
+        wunit,
+        comfort,
+        selectedMorphology,
+        selectedOption,
+        frontposePhoto, 
+        sideposePhoto: photo.uri,
+        productUrl,
+      });
     }
   };
 
+  if (!device) return <View><Text>Loading...</Text></View>;
+  if (!hasPermission) return <View><Text>No access to camera</Text></View>;
+
   return (
-    <View style={{ flex: 1 }}>
-      {device && (
-        <Camera
-          ref={cameraRef}
-          style={{ flex: 1 }}
-          device={device}
-          isActive={isFocused}
-          frameProcessor={frame => handlePoseDetection(frame)}
-          frameProcessorFps={1} // Process frames at 1 FPS
-        />
-      )}
-      <Image source={indicatorSource} style={{ width: 100, height: 100 }} />
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      ) : (
-        <Button title="Capture Pose" onPress={handleCapture} />
-      )}
+    <View style={styles.container}>
+      <Camera
+        style={styles.camera}
+        device={device}
+        isActive={true}
+        ref={cameraRef}
+        photo={true}
+        frameProcessor={frameProcessor}
+        frameProcessorFps={1}
+      />
+      <View style={styles.overlay}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.speakerButton}>
+          <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
+        </TouchableOpacity>
+        <Image source={indicatorSource} style={styles.indicatorImage} />
+        {isPoseCorrect && (
+          <View style={styles.bottomRectangle}>
+            <TouchableOpacity onPress={handleCapture}>
+              <Image source={require('../assets/position_text.png')} style={styles.rectangleImage} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  container: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  backButton: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
+    top: 40,
+    left: 20,
+  },
+  speakerButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+  },
+  indicatorImage: {
+    position: 'absolute',
+    top: 70,
+    right: 20,
+    width: 38,
+    height: 136,
+  },
+  bottomRectangle: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  rectangleImage: {
+    width: 334,
+    height: 50,
+    borderRadius: 25,
   },
 });
 
