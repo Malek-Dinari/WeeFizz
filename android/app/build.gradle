@@ -112,7 +112,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
 
     // ML Kit Pose Detection
-    implementation 'com.google.mlkit:pose-detection:18.0.0-beta5'
+    // implementation 'com.google.mlkit:pose-detection:18.0.0-beta5'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
