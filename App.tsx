@@ -1,118 +1,136 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import NoProductScreen from './src/NoProductScreen';
+import QRScanScreen from './src/QRScanScreen';
+import QRScanWithCameraScreen from './src/QRScanWithCameraScreen';
+import SplashScreen from './src/SplashScreen';
+import WelcomeScreen from './src/WelcomeScreen';
+import CGUScreen from './src/CGUScreen';
+import TermsConditionsScreenScreen from './src/TermsConditionsScreen';
+import SexSelectionScreen from './src/SexSelectionScreen';
+import SizeSelectionScreen from './src/SizeSelectionScreen';
+import WeightSelectionScreen from './src/WeightSelectionScreen';
+import ComfortSelectionScreen from './src/ComfortSelectionScreen';
+import BodyMorphologySelectionScreen from './src/BodyMorphologySelectionScreen';
+import ScanMethodSelectionScreen from './src/ScanMethodSelectionScreen';
+import Tuto1Screen from './src/Tuto1Screen';
+import Tuto2Screen from './src/Tuto2Screen';
+import Tuto3Screen from './src/Tuto3Screen';
+import CameraFrontPoseScreen from './src/CameraFrontPoseScreen';
+import ValidationFrontPoseScreen from './src/ValidationFrontPoseScreen';
+import CameraSidePoseScreen from './src/CameraSidePoseScreen';
+import ValidationSidePoseScreen from './src/ValidationSidePoseScreen';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const Stack = createStackNavigator();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const App = () => {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="QRScanScreen">  {/* Set QRScanScreen as the initial screen */}
+        <Stack.Screen 
+          name="QRScanScreen" 
+          component={QRScanScreen} 
+          options={{ headerShown: false }} // Hide header if needed
+        />
+        <Stack.Screen 
+          name="NoProductScreen" 
+          component={NoProductScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+        name="QRScanWithCameraScreen" 
+        component={QRScanWithCameraScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+        name="SplashScreen" 
+        component={SplashScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+        name="WelcomeScreen" 
+        component={WelcomeScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="CGUScreen" 
+          component={CGUScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="TermsConditionsScreenScreen" 
+          component={TermsConditionsScreenScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+        name="SexSelectionScreen" 
+        component={SexSelectionScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+        name="SizeSelectionScreen" 
+        component={SizeSelectionScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+        name="WeightSelectionScreen" 
+        component={WeightSelectionScreen} 
+        options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ComfortSelectionScreen" 
+          component={ComfortSelectionScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="BodyMorphologySelectionScreen" 
+          component={BodyMorphologySelectionScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ScanMethodSelectionScreen" 
+          component={ScanMethodSelectionScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Tuto1Screen" 
+          component={Tuto1Screen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Tuto2Screen" 
+          component={Tuto2Screen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Tuto3Screen" 
+          component={Tuto3Screen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="CameraFrontPoseScreen" 
+          component={CameraFrontPoseScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ValidationFrontPoseScreen" 
+          component={ValidationFrontPoseScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="CameraSidePoseScreen" 
+          component={CameraSidePoseScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ValidationSidePoseScreen" 
+          component={ValidationSidePoseScreen} 
+          options={{ headerShown: false }} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
