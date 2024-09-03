@@ -1,3 +1,21 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  
+  
+  "compilerOptions": {
+    
+    "target": "es6",
+    "module": "ES2015",
+    "moduleResolution": "bundler",
+    "outDir": "dist",
+    "sourceMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+
+  "extends": "@react-native/typescript-config/tsconfig.json",
+
+  "include": ["src/**/*.js", "tests/**/*.js"],
+  "exclude": ["node_modules", ".vscode"]
 }

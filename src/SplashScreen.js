@@ -15,11 +15,11 @@ const SplashScreen = () => {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, productUrl]);
 
   return (
     <ImageBackground 
-      source={require('../assets/WeeFizz page.png')} 
+      source={require('../assets/WeeFizz page.png')}
       style={styles.background}
     >
       <View style={styles.overlay}>

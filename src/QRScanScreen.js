@@ -82,7 +82,7 @@ const QRScanScreen = ({ navigation }) => {
   }
 
   return (
-    <ImageBackground source={require('../assets/bg QR scan.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/bg QR scan.png')}  style={styles.background}>
       <View style={styles.overlay} />
 
       <View style={styles.container}>

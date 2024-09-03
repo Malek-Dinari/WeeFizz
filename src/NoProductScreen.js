@@ -22,7 +22,7 @@ const NoProductScreen = () => {
 
   return (
     <ImageBackground 
-      source={require('../assets/WeeFizz page.png')}
+      source={require('../assets/WeeFizz page.png')} 
       style={styles.background}
     >
       <Animated.View style={[styles.centerFrame, { opacity: fadeInAnim }]}>

@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
-import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
-import * as tf from '@tensorflow/tfjs';
-import * as poseDetection from '@tensorflow-models/pose-detection';
-import '@tensorflow/tfjs-backend-webgl'; // Use WebGL backend for better performance
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
+import { Camera, useFrameProcessor, useCameraDevices } from 'react-native-vision-camera';
+import { useTensorflowModel } from 'react-native-fast-tflite';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const CameraFrontPoseScreen = () => {
@@ -18,48 +17,64 @@ const CameraFrontPoseScreen = () => {
   const devices = useCameraDevices();
   const device = selectedOption === 'seul' ? devices.front : devices.back;
 
+  const { resize } = useResizePlugin();
+  const poseDetection = useTensorflowModel(require('../assets/blazepose-detector.tflite'));
+
+  const model = poseDetection.state === 'loaded' ? poseDetection.model : undefined;
+
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
       setHasPermission(status === 'authorized');
     })();
-
-    (async () => {
-      await tf.ready();
-      detectorRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
-    })();
   }, []);
 
-  const frameProcessor = useFrameProcessor(async (frame) => {
-    try {
-      await tf.ready();
-      const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
-      const imageTensor = tf.browser.fromPixels(frame);
-      const poses = await detector.estimatePoses(imageTensor);
-      
-      if (poses && poses.length > 0) {
-        const keypoints = poses[0].keypoints;
-        const poseIsCorrect = checkPose(keypoints);
-        setIsPoseCorrect(poseIsCorrect);
-        setIndicatorSource(poseIsCorrect
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet';
+    if (!model) return;
+
+    // 1. Resize frame to the input size of the model
+    const resizedFrame = resize(frame, {
+      scale: {
+        width: 192, // adjust this based on your model input size
+        height: 192,
+      },
+      pixelFormat: 'rgb',
+      dataType: 'uint8',
+    });
+
+    // 2. Run the model with the resized frame
+    const outputs = model.runSync([resizedFrame]);
+
+    // 3. Interpret the outputs
+    const poses = outputs[0]; // Assume output is in this format, you will need to adjust this
+
+    if (poses && poses.length > 0) {
+      const keypoints = poses; // Adjust based on your model's output
+      const poseIsCorrect = checkPose(keypoints);
+      setIsPoseCorrect(poseIsCorrect);
+      setIndicatorSource(
+        poseIsCorrect
           ? require('../assets/greenlight.png')
           : require('../assets/orangelight.png')
-        );
-      }
-    } catch (error) {
-      console.error('Error during pose detection:', error);
+      );
     }
-  }, []);
+  }, [model]);
 
   const checkPose = (keypoints) => {
+    // Replace with your pose validation logic using keypoints
     const keypointNames = ['left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_shoulder', 'right_shoulder', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'];
     const keypointMap = {};
+
+    // Assuming keypoints are provided as a list of objects with `name` and `coordinates`
     keypoints.forEach(k => keypointMap[k.name] = k);
 
     for (const name of keypointNames) {
       if (!keypointMap[name]) return false;
     }
 
+    // Implement your specific pose validation logic here
+    // Example:
     const wristToHipDistanceThreshold = 0.1;
     const shouldersLevelThreshold = 0.1;
     const kneeDistanceThreshold = 0.1;
@@ -125,13 +140,13 @@ const CameraFrontPoseScreen = () => {
             <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.speakerButton}>
-            <Image source={require('../assets/sound on speaker.png')} style={styles.icon} />
+            <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
           </TouchableOpacity>
           <Image source={indicatorSource} style={styles.indicatorImage} />
           {isPoseCorrect && (
             <View style={styles.bottomRectangle}>
               <TouchableOpacity onPress={handleCapture}>
-                <Image source={require('../assets/position texte.png')} style={styles.rectangleImage} />
+                <Image source={require('../assets/position_texte.png')} style={styles.rectangleImage} />
               </TouchableOpacity>
             </View>
           )}
@@ -144,6 +159,7 @@ const CameraFrontPoseScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
   },
   camera: {
     flex: 1,
