@@ -10,7 +10,7 @@ const CGUScreen = () => {
       <ScrollView contentContainerStyle={styles.content}>
         <TouchableOpacity onPress={() => navigation.navigate('WelcomeScreen')} style={styles.goBackButton}>
           <Image 
-              source={require('../assets/X.png')} 
+              source={require('../assets/mark.png')} 
               style={styles.goBackImage} 
           />
         </TouchableOpacity>

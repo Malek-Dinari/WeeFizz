@@ -44,7 +44,7 @@ const BodyMorphologySelectionScreen = () => {
 
   useEffect(() => {
     scrollToClosestMorphology();
-  }, []);
+  }, );
 
   const scrollToClosestMorphology = () => {
     if (!scrollViewRef.current) return;
