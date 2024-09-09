@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -22,115 +23,39 @@ import CameraFrontPoseScreen from './src/CameraFrontPoseScreen';
 import ValidationFrontPoseScreen from './src/ValidationFrontPoseScreen';
 import CameraSidePoseScreen from './src/CameraSidePoseScreen';
 import ValidationSidePoseScreen from './src/ValidationSidePoseScreen';
+import MesurementLoadingScreen from './src/MesurementLoadingScreen';
 
 const Stack = createStackNavigator();
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="QRScanScreen">  {/* Set QRScanScreen as the initial screen */}
-        <Stack.Screen 
-          name="QRScanScreen" 
-          component={QRScanScreen} 
-          options={{ headerShown: false }} // Hide header if needed
-        />
-        <Stack.Screen 
-          name="NoProductScreen" 
-          component={NoProductScreen} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-        name="QRScanWithCameraScreen" 
-        component={QRScanWithCameraScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-        name="SplashScreen" 
-        component={SplashScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-        name="WelcomeScreen" 
-        component={WelcomeScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="CGUScreen" 
-          component={CGUScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="TermsConditionsScreenScreen" 
-          component={TermsConditionsScreenScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-        name="SexSelectionScreen" 
-        component={SexSelectionScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-        name="SizeSelectionScreen" 
-        component={SizeSelectionScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-        name="WeightSelectionScreen" 
-        component={WeightSelectionScreen} 
-        options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="ComfortSelectionScreen" 
-          component={ComfortSelectionScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="BodyMorphologySelectionScreen" 
-          component={BodyMorphologySelectionScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="ScanMethodSelectionScreen" 
-          component={ScanMethodSelectionScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="Tuto1Screen" 
-          component={Tuto1Screen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="Tuto2Screen" 
-          component={Tuto2Screen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="Tuto3Screen" 
-          component={Tuto3Screen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="CameraFrontPoseScreen" 
-          component={CameraFrontPoseScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="ValidationFrontPoseScreen" 
-          component={ValidationFrontPoseScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="CameraSidePoseScreen" 
-          component={CameraSidePoseScreen} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="ValidationSidePoseScreen" 
-          component={ValidationSidePoseScreen} 
-          options={{ headerShown: false }} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="QRScanScreen">
+          <Stack.Screen name="QRScanScreen" component={QRScanScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="NoProductScreen" component={NoProductScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="QRScanWithCameraScreen" component={QRScanWithCameraScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="CGUScreen" component={CGUScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="TermsConditionsScreenScreen" component={TermsConditionsScreenScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SexSelectionScreen" component={SexSelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SizeSelectionScreen" component={SizeSelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="WeightSelectionScreen" component={WeightSelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ComfortSelectionScreen" component={ComfortSelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="BodyMorphologySelectionScreen" component={BodyMorphologySelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ScanMethodSelectionScreen" component={ScanMethodSelectionScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Tuto1Screen" component={Tuto1Screen} options={{ headerShown: false }} />
+          <Stack.Screen name="Tuto2Screen" component={Tuto2Screen} options={{ headerShown: false }} />
+          <Stack.Screen name="Tuto3Screen" component={Tuto3Screen} options={{ headerShown: false }} />
+          <Stack.Screen name="CameraFrontPoseScreen" component={CameraFrontPoseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ValidationFrontPoseScreen" component={ValidationFrontPoseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="CameraSidePoseScreen" component={CameraSidePoseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ValidationSidePoseScreen" component={ValidationSidePoseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MesurementLoadingScreen" component={MesurementLoadingScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 };
 

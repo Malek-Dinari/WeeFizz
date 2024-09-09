@@ -141,13 +141,13 @@ const CameraSidePoseScreen = () => {
             <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.speakerButton}>
-            <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
+            <Image source={require('../assets/sound on speaker.png')} style={styles.icon} />
           </TouchableOpacity>
           <Image source={indicatorSource} style={styles.indicatorImage} />
           {isPoseCorrect && (
             <View style={styles.bottomRectangle}>
               <TouchableOpacity onPress={handleCapture}>
-                <Image source={require('../assets/position_text.png')} style={styles.rectangleImage} />
+                <Image source={require('../assets/position texte.png')} style={styles.rectangleImage} />
               </TouchableOpacity>
             </View>
           )}

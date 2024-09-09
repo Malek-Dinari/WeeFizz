@@ -51,12 +51,14 @@ const QRScanScreen = ({ navigation }) => {
       Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
       Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
       Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
-    ]).start();
+    ]).start(() => {
+      // Navigate to the ScanQRWithCameraScreen after the animation ends
+      navigation.push('QRScanWithCameraScreen');
+    });
   };
 
   const validateUrl = async () => {
     try {
-      // Replace this URL with the actual API endpoint for validation
       const response = await fetch(`https://fit-size.com/fitshop/modules/guidetailles/api.php?action=getLogo&product_id=27&category_id=14address=${url}`);
       const data = await response.json();
 
@@ -64,12 +66,13 @@ const QRScanScreen = ({ navigation }) => {
         // Navigate to the next screen if URL is valid
         navigation.push('QRScanWithCameraScreen'); 
       } else {
-        // Show error popup if URL is invalid
-        setShowErrorPopup(true);
+        // Navigate to NoProductScreen if URL is invalid
+        navigation.push('NoProductScreen');
       }
     } catch (error) {
       console.error("Error validating URL:", error);
-      setShowErrorPopup(true); // Show error popup in case of error
+      // Navigate to NoProductScreen in case of an error
+      navigation.push('NoProductScreen');
     }
   };
 
@@ -82,7 +85,7 @@ const QRScanScreen = ({ navigation }) => {
   }
 
   return (
-    <ImageBackground source={require('../assets/bg QR scan.png')}  style={styles.background}>
+    <ImageBackground source={require('../assets/bg QR scan.png')} style={styles.background}>
       <View style={styles.overlay} />
 
       <View style={styles.container}>
@@ -135,6 +138,7 @@ const QRScanScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.button} onPress={validateUrl}>
             <Image source={require('../assets/Bouton valider.png')} style={styles.buttonImage} />
           </TouchableOpacity>
+
         </View>
 
         {showErrorPopup && (
@@ -165,7 +169,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 139, 0.7)', // Dark blue with low transparency
+    backgroundColor: 'rgba(0, 0, 139, 0.5)', // Dark blue with 0.5 opacity
   },
   container: {
     flex: 1,
@@ -274,15 +278,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -150 }, { translateY: -150 }],
+    transform: [{ translateX: -150 }, { translateY: -100 }],
     width: 300,
-    height: 300,
+    height: 200,
     backgroundColor: 'white',
     borderRadius: 10,
-    alignItems: 'center',
     justifyContent: 'center',
-    elevation: 10,
-    zIndex: 1,
+    alignItems: 'center',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   closeButton: {
     position: 'absolute',
@@ -294,28 +302,36 @@ const styles = StyleSheet.create({
     height: 20,
   },
   errorIcon: {
-    width: 80,
-    height: 80,
+    width: 50,
+    height: 50,
     marginBottom: 10,
   },
   popupTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 10,
+    color: 'red',
+    textAlign: 'center',
   },
   popupSubtitle: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: 14,
+    color: 'black',
     textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 10,
   },
   retryButton: {
     marginTop: 20,
   },
   retryButtonImage: {
-    width: 150,
+    width: 160,
     height: 40,
+  },
+  cameraContainer: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+    marginTop: 20,
   },
 });
 

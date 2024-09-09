@@ -1,21 +1,16 @@
 {
-  
-  
   "compilerOptions": {
-    
     "target": "es6",
-    "module": "ES2015",
-    "moduleResolution": "bundler",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "outDir": "dist",
-    "sourceMap": false,
+    "sourceMap": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-
   "extends": "@react-native/typescript-config/tsconfig.json",
-
-  "include": ["src/**/*.js", "tests/**/*.js"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/**/*.js", "tests/**/*.js"],
   "exclude": ["node_modules", ".vscode"]
 }

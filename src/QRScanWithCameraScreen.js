@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, TouchableOpacity, Alert, ActivityIndicator } fr
 import { Camera } from 'react-native-camera-kit';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const QRScanWithCameraScreen = () => {
   const [cameraPermission, setCameraPermission] = useState(false);
@@ -45,7 +44,7 @@ const QRScanWithCameraScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size="large" color="#000" />
         <Text style={styles.loadingText}>Loading camera...</Text>
       </View>
     );
@@ -63,7 +62,7 @@ const QRScanWithCameraScreen = () => {
   }
 
   return (
-    <LinearGradient colors={['#0f2027', '#203a43', '#2c5364']} style={styles.container}>
+    <View style={styles.container}>
       <Camera
         style={StyleSheet.absoluteFill}
         scanBarcode={true}
@@ -75,7 +74,7 @@ const QRScanWithCameraScreen = () => {
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -86,11 +85,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: '#000',
     marginTop: 10,
   },
   noAccessText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 18,
   },
   goBackText: {
