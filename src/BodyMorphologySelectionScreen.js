@@ -129,7 +129,7 @@ const BodyMorphologySelectionScreen = () => {
         onPress={handleNext} 
         style={[styles.nextButton, { opacity: selectedMorphology ? 1 : 0.5 }]}
         disabled={!selectedMorphology}>
-        <Image source={require('../assets/Bouton valider 2.png')} style={styles.nextButtonImage} />
+        <Image source={require('../assets/Bouton_valider_2.png')} style={styles.nextButtonImage} />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={handleNext} style={styles.skipStep}>
@@ -157,12 +157,14 @@ const styles = StyleSheet.create({
       marginBottom: 150, // Margin between swiping list and 'Passer l’étape'
     },
     title: {
+      color: 'black',
       fontSize: 24,
       fontWeight: 'bold',
       textAlign: 'center',
       marginTop: 80,
     },
     subtitle: {
+      color: 'black',
       fontSize: 18,
       marginTop: 10,
       textAlign: 'left',
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
     },
     skipStepText: {
       fontSize: 16,
+      color: 'blue',
       color: 'black',
       textDecorationLine: 'underline',
     },
@@ -207,8 +210,8 @@ const styles = StyleSheet.create({
       left: 20,
     },
     leftArrowImage: {
-      width: 30,
-      height: 30,
+      width: 24,
+      height: 24,
     },
   });
   

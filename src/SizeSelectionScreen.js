@@ -114,7 +114,7 @@ const SizeSelectionScreen = () => {
           onPress={handleNextPress}
           style={styles.nextButton}
         >
-          <Image source={require('../assets/Bouton suivant.png')} style={styles.nextButtonImage} />
+          <Image source={require('../assets/Bouton_suivant.png')} style={styles.nextButtonImage} />
         </TouchableOpacity>
       </View>
     );

@@ -15,8 +15,8 @@ import { Camera, useCameraDevices } from 'react-native-vision-camera';
 
 const QRScanScreen = ({ navigation }) => {
   const [shakeAnimation] = useState(new Animated.Value(0));
-  const [showErrorPopup, setShowErrorPopup] = useState(false); // State for popup visibility
-  const [url, setUrl] = useState(''); // State for the URL input
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [url, setUrl] = useState('');
   const [cameraPermission, setCameraPermission] = useState(false);
 
   const devices = useCameraDevices();
@@ -52,40 +52,34 @@ const QRScanScreen = ({ navigation }) => {
       Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
       Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
     ]).start(() => {
-      // Navigate to the ScanQRWithCameraScreen after the animation ends
       navigation.push('QRScanWithCameraScreen');
     });
   };
 
   const validateUrl = async () => {
     try {
-      const response = await fetch(`https://fit-size.com/fitshop/modules/guidetailles/api.php?action=getLogo&product_id=27&category_id=14address=${url}`);
+      const fitShopUrlPattern = /fit-shop/;
+      if (!fitShopUrlPattern.test(url)) {
+        setShowErrorPopup(true);
+        return;
+      }
+      
+      const response = await fetch(`https://fit-size.com/fitshop/modules/guidetailles/api.php?action=getLogo&product_id=27&category_id=14&address=${url}`);
       const data = await response.json();
 
       if (data.isValid) {
-        // Navigate to the next screen if URL is valid
-        navigation.push('QRScanWithCameraScreen'); 
+        navigation.push('QRScanWithCameraScreen');
       } else {
-        // Navigate to NoProductScreen if URL is invalid
         navigation.push('NoProductScreen');
       }
     } catch (error) {
       console.error("Error validating URL:", error);
-      // Navigate to NoProductScreen in case of an error
       navigation.push('NoProductScreen');
     }
   };
 
-  if (!cameraPermission) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Camera permission is required to scan QR codes.</Text>
-      </View>
-    );
-  }
-
   return (
-    <ImageBackground source={require('../assets/bg QR scan.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/bg_QR_scan.png')} style={styles.background}>
       <View style={styles.overlay} />
 
       <View style={styles.container}>
@@ -96,49 +90,44 @@ const QRScanScreen = ({ navigation }) => {
         <Image source={require('../assets/QR.png')} style={styles.qrImage} />
 
         <Text style={styles.title}>Scanner un nouveau produit</Text>
-        <Text style={styles.subtitle}>Cela prend quelques secondes.</Text>
+        <Text style={styles.subtitle}>Cela prend quelques secondes. et vous évite de reprendre vos mesures !</Text>
 
         <TouchableOpacity onPress={handleShakeAnimation} style={styles.lienQRContainer}>
           <Animated.Image source={require('../assets/lienQR.png')} style={[styles.lienQR, { transform: [{ translateX: shakeAnimation }] }]} />
         </TouchableOpacity>
 
-        <View style={styles.cameraContainer}>
-          {device != null && (
+        {device != null && (
+          <View style={styles.cameraContainer}>
             <Camera
               style={StyleSheet.absoluteFill}
               device={device}
               isActive={true}
               photo={true}
-              onInitialized={() => {
-                // Handle camera initialization if needed
-              }}
             />
-          )}
-        </View>
+          </View>
+        )}
 
         <View style={styles.footer}>
-          <Image source={require('../assets/Rectangle upper.png')} style={styles.rectangle} />
-
-          <View style={styles.circleContainer}>
-            <Image source={require('../assets/OU Circle.png')} style={styles.circle} />
-            <Text style={styles.circleText}>OU</Text>
+          <Image source={require('../assets/Rectangle_upper.png')} style={styles.rectangleImage} />
+          <View style={styles.footerContent}>
+            <Text style={styles.urlLabel}>Adresse URL du produit</Text>
+            <View style={styles.circleContainer}>
+              <Image source={require('../assets/OU_Circle.png')} style={styles.circle} />
+              <Text style={styles.circleText}>OU</Text>
+            </View>
+            <View style={styles.inputButtonContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="www.loremipsum.fr"
+                placeholderTextColor="#888"
+                value={url}
+                onChangeText={setUrl}
+              />
+              <TouchableOpacity style={styles.button} onPress={validateUrl}>
+                <Image source={require('../assets/Bouton_valider_2.png')} style={styles.buttonImage} />
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.footerTextContainer}>
-            <Text style={styles.footerText}>Adresse URL du produit</Text>
-          </View>
-
-          <TextInput
-            style={styles.textInput}
-            placeholder="www.loremipsum.fr"
-            placeholderTextColor="#888"
-            value={url}
-            onChangeText={setUrl}
-          />
-          <TouchableOpacity style={styles.button} onPress={validateUrl}>
-            <Image source={require('../assets/Bouton valider.png')} style={styles.buttonImage} />
-          </TouchableOpacity>
-
         </View>
 
         {showErrorPopup && (
@@ -150,7 +139,7 @@ const QRScanScreen = ({ navigation }) => {
             <Text style={styles.popupTitle}>Erreur</Text>
             <Text style={styles.popupSubtitle}>Il n'y a pas de produit avec cette adresse</Text>
             <TouchableOpacity onPress={() => navigation.push('QRScanScreen')} style={styles.retryButton}>
-              <Image source={require('../assets/Bouton reprendre 2.png')} style={styles.retryButtonImage} />
+              <Image source={require('../assets/Bouton_valider_2.png')} style={styles.retryButtonImage} />
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -169,7 +158,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 139, 0.5)', // Dark blue with 0.5 opacity
+    backgroundColor: 'rgba(8, 41, 63, 0.75)', // Semi-transparent color overlay
   },
   container: {
     flex: 1,
@@ -191,106 +180,114 @@ const styles = StyleSheet.create({
     height: 50,
     marginBottom: 10,
     position: 'absolute',
-    top: '10%', // Adjust to 10% from the top of the screen
+    top: '8%',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
+    marginTop: -30,
   },
   subtitle: {
     fontSize: 16,
     color: 'white',
     textAlign: 'center',
-    marginBottom: 50,
+    marginBottom: 30,
   },
   lienQRContainer: {
-    marginBottom: 20,
+    marginBottom: 50,
   },
   lienQR: {
     width: 234,
     height: 245,
   },
+  cameraContainer: {
+    width: '80%',
+    height: '30%',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   footer: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    height: '20%',
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
   },
-  rectangle: {
-    width: 390,
+  rectangleImage: {
+    width: '100%',
     height: 189,
+  },
+  footerContent: {
     position: 'absolute',
     bottom: 0,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  urlLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'left',
+    marginBottom: -70,
+    width: '100%',
+    position: 'relative',
   },
   circleContainer: {
-    position: 'absolute',
-    top: -55, // Adjust as needed
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 10,
   },
   circle: {
-    width: 50,
-    height: 50,
+    width: 59,
+    height: 59,
+    marginBottom: 10,
   },
   circleText: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -10 }, { translateY: -10 }],
+    marginLeft: -40,
+    marginBottom: 10,
     color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  footerTextContainer: {
-    width: '90%',
-    alignItems: 'flex-start', // Aligns the text to the left
-  },
-  footerText: {
-    fontSize: 14,
-    color: 'black',
-    marginBottom: 10,
-    fontWeight: 'bold',
-    zIndex: 1, // Ensures the text is above the rectangle
+  inputButtonContainer: {
+    flexDirection: 'center',
+    alignItems: 'center',
   },
   textInput: {
-    width: '90%',
+    width: 334,
     padding: 10,
     borderRadius: 5,
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 20,
+    marginBottom: 10,
     color: 'black',
   },
   button: {
-    marginTop: 20,
+    width: 334,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonImage: {
-    width: 160,
-    height: 40,
+    width: '100%',
+    height: '100%',
   },
   popup: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -150 }, { translateY: -100 }],
-    width: 300,
-    height: 200,
+    bottom: 100,
+    left: '10%',
+    right: '10%',
     backgroundColor: 'white',
     borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+    alignItems: 'center',
   },
   closeButton: {
     position: 'absolute',
@@ -302,36 +299,28 @@ const styles = StyleSheet.create({
     height: 20,
   },
   errorIcon: {
-    width: 50,
-    height: 50,
-    marginBottom: 10,
+    width: 80,
+    height: 80,
+    marginBottom: 20,
   },
   popupTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'red',
-    textAlign: 'center',
+    color: 'black',
+    marginBottom: 10,
   },
   popupSubtitle: {
     fontSize: 14,
     color: 'black',
-    textAlign: 'center',
-    marginTop: 10,
+    marginBottom: 20,
   },
   retryButton: {
-    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
   retryButtonImage: {
-    width: 160,
-    height: 40,
-  },
-  cameraContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'black',
-    marginTop: 20,
+    width: 150,
+    height: 50,
   },
 });
 

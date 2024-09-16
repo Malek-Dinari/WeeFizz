@@ -22,7 +22,7 @@ const NoProductScreen = () => {
 
   return (
     <ImageBackground 
-      source={require('../assets/WeeFizz page.png')} 
+      source={require('../assets/WeeFizz_page.png')} 
       style={styles.background}
     >
       <Animated.View style={[styles.centerFrame, { opacity: fadeInAnim }]}>
@@ -35,7 +35,7 @@ const NoProductScreen = () => {
         {/* Scan Button */}
         <TouchableOpacity style={styles.scanButton} onPress={navigateToQRScan}>
           <Image 
-            source={require('../assets/scan button home.png')}
+            source={require('../assets/scan_button_home.png')}
             style={styles.scanButtonImage}
           />
         </TouchableOpacity>

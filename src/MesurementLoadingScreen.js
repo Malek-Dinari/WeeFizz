@@ -3,6 +3,7 @@ import { View, StyleSheet, Image, Text, ImageBackground, TouchableOpacity, Anima
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ProgressBar } from 'react-native-paper';
 import axios from 'axios';
+import crypto from 'crypto'; // Import crypto for hashing
 
 const MeasurementLoadingScreen = () => {
   const navigation = useNavigation();
@@ -19,7 +20,7 @@ const MeasurementLoadingScreen = () => {
       setProgress((oldProgress) => {
         if (oldProgress === 1 && measurements) {
           clearInterval(interval);
-          navigation.navigate('ThankYouScreen', { measurements, productUrl });
+          navigation.navigate('MesurementResultsScreen', { measurements, productUrl });
           return oldProgress;
         }
         return oldProgress + 0.01;
@@ -34,28 +35,48 @@ const MeasurementLoadingScreen = () => {
   useEffect(() => {
     const fetchMeasurements = async () => {
       try {
-        const requestBody = {
-          action: 'getProduct',
+        const requestType = "getProduct";
+        const parameters = {
           height,
           weight,
-          gender,
-          frontposePhoto,
-          sideposePhoto,
-          ...(comfort && { comfort }),
-          ...(selectedMorphology && { selectedMorphology }),
+          front_image: frontposePhoto,
+          side_image: sideposePhoto,
+          measurement_options: comfort ? [comfort] : [], // Add options if available
+        };
+
+        // Convert parameters to JSON string
+        const parametersJsonString = JSON.stringify(parameters);
+
+        // Step 1: Hash the parameters using SHA-256
+        const hash = crypto.createHash('sha256').update(parametersJsonString).digest('hex');
+
+        // Step 2: Sign the hash using your private key (replace 'yourPrivateKey' with actual private key)
+        const privateKey = `-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----`;
+        const sign = crypto.createSign('RSA-SHA256');
+        sign.update(hash);
+        const signature = sign.sign(privateKey, 'base64');
+
+        // Get the base64 public key from the dashboard
+        const base64publickey = "YOUR_BASE64_PUBLIC_KEY";
+
+        const requestBody = {
+          RequestType: requestType,
+          Parameters: parameters,
         };
 
         console.log("Request body:", requestBody); // Debug: log the request body
 
+        // Send the API request
         const response = await axios.post('https://services-api.weefizz.ai/api', requestBody, {
           headers: {
-            'Token': 'Vc2Tc7UjrJzto4ByrVFC48JSLVJ9aCcMRxdqqbrdUrGumEP0ay3SBblaO89QxiKl',
+            'base64publickey': base64publickey,
+            'base64signature': signature, // Attach the base64 encoded signature
             'Content-Type': 'application/json',
           },
         });
 
         console.log("API response:", response.data); // Debug: log the API response
-        setMeasurements(response.data);
+        setMeasurements(response.data.ReturnObject); // Extract measurements from response
       } catch (error) {
         console.error("Error fetching measurements:", error); // Debug: log the error
         setShowPopup(true);
@@ -95,7 +116,7 @@ const MeasurementLoadingScreen = () => {
       style={styles.background}
     >
       <View style={styles.container}>
-        <Image source={require('../assets/WeeFizz Logo.png')} style={styles.logo} />
+        <Image source={require('../assets/WeeFizz_Logo.png')} style={styles.logo} />
         <Image source={require('../assets/tape_measure.png')} style={styles.tapeMeasure} />
         <ProgressBar progress={progress} color="#3FAAA6" style={styles.progressBar} />
         <Text style={styles.loadingText}>Notre couturier est en train de relever vos mesures !</Text>
@@ -105,13 +126,13 @@ const MeasurementLoadingScreen = () => {
           <Animated.View style={[styles.popupContainer, { opacity: fadeAnim }]}>
             <View style={styles.popupContent}>
               <TouchableOpacity onPress={handleClosePopup} style={styles.closeButton}>
-                <Image source={require('../assets/crossX dark.png')} style={styles.icon} />
+                <Image source={require('../assets/crossX_dark.png')} style={styles.icon} />
               </TouchableOpacity>
-              <Image source={require('../assets/error msg.png')} style={styles.errorIcon} />
+              <Image source={require('../assets/error_msg.png')} style={styles.errorIcon} />
               <Text style={styles.popupTitle}>Erreur</Text>
               <Text style={styles.popupSubtitle}>Il n'y a pas eu de réponse de l'API.</Text>
               <TouchableOpacity onPress={handleRetry}>
-                <Image source={require('../assets/Bouton reprendre 2.png')} style={styles.retryButton} />
+                <Image source={require('../assets/Bouton_reprendre_2.png')} style={styles.retryButton} />
               </TouchableOpacity>
             </View>
           </Animated.View>

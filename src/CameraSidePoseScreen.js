@@ -2,14 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
 import { Camera, useFrameProcessor, useCameraDevices } from 'react-native-vision-camera';
 import { useTensorflowModel } from 'react-native-fast-tflite';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import * as tf from '@tensorflow/tfjs';
 
 const CameraSidePoseScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
   const [isPoseCorrect, setIsPoseCorrect] = useState(false);
   const [indicatorSource, setIndicatorSource] = useState(require('../assets/orangelight.png'));
-  const cameraRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
   const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, frontposePhoto, productUrl } = route.params;
@@ -17,11 +16,11 @@ const CameraSidePoseScreen = () => {
   const devices = useCameraDevices();
   const device = selectedOption === 'seul' ? devices.front : devices.back;
 
-  const { resize } = useResizePlugin();
-  const poseDetection = useTensorflowModel(require('../assets/blazepose-detector.tflite'));
-
+  // Load the pose detection model
+  const poseDetection = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
   const model = poseDetection.state === 'loaded' ? poseDetection.model : undefined;
 
+  // Request camera permission on mount
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
@@ -29,28 +28,34 @@ const CameraSidePoseScreen = () => {
     })();
   }, []);
 
+  // Custom resizing function (instead of using the vision-camera resize plugin)
+  const resizeImage = (frame, targetWidth, targetHeight) => {
+    const aspectRatio = frame.width / frame.height;
+    const width = targetWidth;
+    const height = targetWidth / aspectRatio;
+    
+    // Resize logic, adapt pixel data
+    return tf.tidy(() => {
+      const tensor = tf.tensor(new Uint8Array(frame.data), [frame.height, frame.width, 3]);
+      const resized = tf.image.resizeBilinear(tensor, [targetHeight, targetWidth]);
+      return resized;
+    });
+  };
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     if (!model) return;
 
-    // 1. Resize frame to the input size of the model
-    const resizedFrame = resize(frame, {
-      scale: {
-        width: 192, // adjust this based on your model input size
-        height: 192,
-      },
-      pixelFormat: 'rgb',
-      dataType: 'uint8',
-    });
+    // Resize the frame to match the input size for the model
+    const resizedFrame = resizeImage(frame, 192, 192);
 
-    // 2. Run the model with the resized frame
+    // Run the model
     const outputs = model.runSync([resizedFrame]);
 
-    // 3. Interpret the outputs
-    const poses = outputs[0]; // Assume output is in this format, you will need to adjust this
+    // Assuming output is a list of keypoints (adjust if needed)
+    const keypoints = outputs[0];
 
-    if (poses && poses.length > 0) {
-      const keypoints = poses; // Adjust based on your model's output
+    if (keypoints && keypoints.length > 0) {
       const poseIsCorrect = checkPose(keypoints);
       setIsPoseCorrect(poseIsCorrect);
       setIndicatorSource(
@@ -61,34 +66,32 @@ const CameraSidePoseScreen = () => {
     }
   }, [model]);
 
+  // Check if the front pose is correct using 17 COCO keypoints
   const checkPose = (keypoints) => {
-    // Replace with your pose validation logic using keypoints
-    const keypointNames = ['left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_shoulder', 'right_shoulder', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'];
-    const keypointMap = {};
+    const keypointNames = [
+      'nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear',
+      'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist',
+      'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'
+    ];
 
-    // Assuming keypoints are provided as a list of objects with `name` and `coordinates`
+    const keypointMap = {};
     keypoints.forEach(k => keypointMap[k.name] = k);
 
+    // Check if all necessary keypoints exist
     for (const name of keypointNames) {
       if (!keypointMap[name]) return false;
     }
 
-    // Implement your specific pose validation logic here
-    // Example:
-    const wristToHipDistanceThreshold = 0.1;
-    const shouldersLevelThreshold = 0.1;
-    const kneeDistanceThreshold = 0.1;
-    const ankleDistanceThreshold = 0.1;
+    // Example logic: Checking if the body posture is symmetric and upright
+    const shoulderAlignmentThreshold = 0.1;
+    const hipAlignmentThreshold = 0.1;
 
-    const leftWristToHipDistance = Math.abs(keypointMap['left_wrist'].x - keypointMap['left_hip'].x);
-    const rightWristToHipDistance = Math.abs(keypointMap['right_wrist'].x - keypointMap['right_hip'].x);
-    const wristsAreToTheSide = leftWristToHipDistance < wristToHipDistanceThreshold && rightWristToHipDistance < wristToHipDistanceThreshold;
+    const leftShoulderToHipDistance = Math.abs(keypointMap['left_shoulder'].y - keypointMap['left_hip'].y);
+    const rightShoulderToHipDistance = Math.abs(keypointMap['right_shoulder'].y - keypointMap['right_hip'].y);
+    const shouldersAligned = Math.abs(keypointMap['left_shoulder'].x - keypointMap['right_shoulder'].x) < shoulderAlignmentThreshold;
+    const hipsAligned = Math.abs(keypointMap['left_hip'].x - keypointMap['right_hip'].x) < hipAlignmentThreshold;
 
-    const shouldersAreLevel = Math.abs(keypointMap['left_shoulder'].y - keypointMap['right_shoulder'].y) < shouldersLevelThreshold;
-    const kneesAreClose = Math.abs(keypointMap['left_knee'].x - keypointMap['right_knee'].x) < kneeDistanceThreshold;
-    const anklesAreClose = Math.abs(keypointMap['left_ankle'].x - keypointMap['right_ankle'].x) < ankleDistanceThreshold;
-
-    return wristsAreToTheSide && shouldersAreLevel && kneesAreClose && anklesAreClose;
+    return shouldersAligned && hipsAligned;
   };
 
   const handleCapture = async () => {
@@ -127,27 +130,26 @@ const CameraSidePoseScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={StyleSheet.absoluteFill}>
       <Camera
-        ref={cameraRef}
-        style={styles.camera}
+        style={StyleSheet.absoluteFill}
         device={device}
-        isActive={true}
+        isActive={false}
         frameProcessor={frameProcessor}
-        frameProcessorFps={1}
+        frameProcessorFps={20}
       >
         <View style={styles.overlay}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.speakerButton}>
-            <Image source={require('../assets/sound on speaker.png')} style={styles.icon} />
+            <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
           </TouchableOpacity>
           <Image source={indicatorSource} style={styles.indicatorImage} />
           {isPoseCorrect && (
             <View style={styles.bottomRectangle}>
               <TouchableOpacity onPress={handleCapture}>
-                <Image source={require('../assets/position texte.png')} style={styles.rectangleImage} />
+                <Image source={require('../assets/position_texte.png')} style={styles.rectangleImage} />
               </TouchableOpacity>
             </View>
           )}
@@ -158,13 +160,6 @@ const CameraSidePoseScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  camera: {
-    flex: 1,
-  },
   overlay: {
     flex: 1,
     justifyContent: 'space-between',

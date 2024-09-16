@@ -61,7 +61,7 @@ const ComfortSelectionScreen = () => {
         style={[styles.nextButton, { opacity : comfort ? 1 : 0.5 }]} 
         disabled={!comfort}
       >
-        <Image source={require('../assets/Bouton suivant.png')} style={styles.nextButtonImage} />
+        <Image source={require('../assets/Bouton_suivant.png')} style={styles.nextButtonImage} />
       </TouchableOpacity>
     </View>
   );

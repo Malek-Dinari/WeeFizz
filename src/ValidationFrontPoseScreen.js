@@ -59,7 +59,7 @@ const ValidationFrontPoseScreen = () => {
         </TouchableOpacity>
         <View style={{ width: 10 }} />
         <TouchableOpacity onPress={handleValidate}>
-          <Image source={require('../assets/Bouton valider.png')} style={styles.validateButton} />
+          <Image source={require('../assets/Bouton_valider.png')} style={styles.validateButton} />
         </TouchableOpacity>
       </View>
     </View>

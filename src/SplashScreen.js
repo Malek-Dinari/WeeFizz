@@ -19,7 +19,7 @@ const SplashScreen = () => {
 
   return (
     <ImageBackground 
-      source={require('../assets/WeeFizz page.png')}
+      source={require('../assets/WeeFizz_page.png')}
       style={styles.background}
     >
       <View style={styles.overlay}>

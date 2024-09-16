@@ -111,6 +111,10 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
+    //implementation 'com.google.mlkit:barcode-scanning:17.3.0'
+
+    //implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1'
+
     // ML Kit Pose Detection
     // implementation 'com.google.mlkit:pose-detection:18.0.0-beta5'
 

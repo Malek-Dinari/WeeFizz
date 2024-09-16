@@ -82,7 +82,7 @@ const SexSelectionScreen = ({ navigation }) => {
         style={[styles.nextButton, { opacity: selectedGender ? 1 : 0.5 }]}
         disabled={!selectedGender}
       >
-        <Image source={require('../assets/Bouton suivant.png')} style={styles.nextButtonImage} />
+        <Image source={require('../assets/Bouton_suivant.png')} style={styles.nextButtonImage} />
       </TouchableOpacity>
     </View>
   );

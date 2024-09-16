@@ -61,8 +61,8 @@ const ScanMethodSelectionScreen = () => {
           onPress={() => handleOptionSelect('seul')}
         />
         <OptionButton
-          source={require('../assets/par un ami.png')}
-          selectedSource={require('../assets/par un ami select.png')}
+          source={require('../assets/par_un_ami.png')}
+          selectedSource={require('../assets/par_un_ami_select.png')}
           isSelected={selectedOption === 'par_un_ami'}
           onPress={() => handleOptionSelect('par_un_ami')}
         />
@@ -73,7 +73,7 @@ const ScanMethodSelectionScreen = () => {
         style={[styles.nextButton, { opacity: selectedOption ? 1 : 0.5 }]}
         disabled={!selectedOption}
       >
-        <Image source={require('../assets/Bouton valider 2.png')} style={styles.nextButtonImage} />
+        <Image source={require('../assets/Bouton_valider_2.png')} style={styles.nextButtonImage} />
       </TouchableOpacity>
     </ScrollView>
   );
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     paddingTop: 50,
-    backgroundColor: 'white',
+
     justifyContent: 'space-between',
   },
   backButton: {
@@ -98,12 +98,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    color: 'black',
     fontWeight: 'bold',
     textAlign: 'left',
     marginTop: 30,
     marginBottom: 10,
   },
   subtitle: {
+    color: 'black',
     fontSize: 18,
     textAlign: 'left',
     marginBottom: 20,

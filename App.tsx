@@ -24,6 +24,9 @@ import ValidationFrontPoseScreen from './src/ValidationFrontPoseScreen';
 import CameraSidePoseScreen from './src/CameraSidePoseScreen';
 import ValidationSidePoseScreen from './src/ValidationSidePoseScreen';
 import MesurementLoadingScreen from './src/MesurementLoadingScreen';
+import MesurementResultsScreen from './src/MesurementResultsScreen';
+import UpperMeasurementsResultsScreen from './src/UpperMeasurementsResultsScreen';
+import LowerMeasurementsResultsScreen from './src/LowerMeasurementsResultsScreen';
 
 const Stack = createStackNavigator();
 
@@ -53,6 +56,9 @@ const App = () => {
           <Stack.Screen name="CameraSidePoseScreen" component={CameraSidePoseScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ValidationSidePoseScreen" component={ValidationSidePoseScreen} options={{ headerShown: false }} />
           <Stack.Screen name="MesurementLoadingScreen" component={MesurementLoadingScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MesurementResultsScreen" component={MesurementResultsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UpperMeasurementsResultsScreen" component={UpperMeasurementsResultsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LowerMeasurementsResultsScreen" component={LowerMeasurementsResultsScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

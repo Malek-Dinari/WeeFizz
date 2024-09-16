@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { CheckBox } from 'react-native-elements';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const WelcomeScreen = () => {
@@ -23,35 +22,38 @@ const WelcomeScreen = () => {
       <ScrollView contentContainerStyle={styles.container}>
         {/* Logo and Text */}
         <Image 
-          source={require('../assets/FIT Shop.png')} 
+          source={require('../assets/FIT_Shop.png')} 
           style={styles.logoFITShop}
         />
         <Image 
-          source={require('../assets/by WeeFizz.png')} 
+          source={require('../assets/by_WeeFizz.png')} 
           style={styles.logoByWeeFizz}
         />
         <Image 
-          source={require('../assets/renseigner prendre obtenir.png')} 
+          source={require('../assets/renseigner_prendre_obtenir.png')} 
           style={styles.logoRenseigner}
         />
 
         {/* Primary Button */}
         <TouchableOpacity style={styles.primaryButton} onPress={handlePrimaryButtonPress}>
           <Image 
-            source={require('../assets/Bouton primaire.png')} 
+            source={require('../assets/Bouton_primaire.png')} 
             style={styles.buttonImage}
           />
         </TouchableOpacity>
 
-        {/* Checkbox and Terms Text */}
+        {/* Custom Checkbox and Terms Text */}
         <View style={styles.termsContainer}>
-          <CheckBox
-            checked={isChecked}
-            onPress={() => setIsChecked(!isChecked)}
-            containerStyle={styles.checkboxContainer}
-            checkedColor="blue"
-            uncheckedColor="gray"
-          />
+          <TouchableOpacity onPress={() => setIsChecked(!isChecked)} style={styles.checkboxContainer}>
+            <Image 
+              source={
+                isChecked 
+                  ? require('../assets/checkbox_checked.png') 
+                  : require('../assets/checkbox_unchecked.png')
+              } 
+              style={styles.checkboxImage}
+            />
+          </TouchableOpacity>
           <Text style={styles.termsText}>
             En sélectionnant cette option, j'accepte la{' '}
             <Text style={styles.linkText} onPress={() => navigation.navigate('TermsConditionsScreen')}>
@@ -95,7 +97,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', marginTop: 20,
     paddingHorizontal: 20, justifyContent: 'center',
   },
-  checkboxContainer: { margin: 0, padding: 0 },
+  checkboxContainer: { marginRight: 10 },
+  checkboxImage: { width: 24, height: 24 },
   termsText: { color: 'black', fontSize: 12, flexShrink: 1 },
   linkText: { color: 'blue', textDecorationLine: 'underline' },
   divider: { width: '80%', height: 1, backgroundColor: 'black', marginVertical: 20 },

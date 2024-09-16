@@ -49,10 +49,10 @@ const Tuto1Screen = () => {
           })} 
           style={styles.skipText}
         >
-          <Text>Passer le tutoriel</Text>
+          <Text style={styles.skipText}>Passer le tutoriel</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleNextPress}>
-          <Image source={require('../assets/Bouton suivant.png')} style={styles.buttonImage} />
+          <Image source={require('../assets/Bouton_suivant.png')} style={styles.buttonImage} />
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: 'black',
   },
   image1: {
     width: 334,
@@ -115,7 +116,6 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
     marginTop: 20,
-    marginBottom: 20,
   },
   button: {
     marginBottom: 20,
