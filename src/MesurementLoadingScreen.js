@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, Text, ImageBackground, TouchableOpacity, Anima
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ProgressBar } from 'react-native-paper';
 import axios from 'axios';
-import crypto from 'crypto'; // Import crypto for hashing
+import CryptoJS from 'crypto-js'; // Import crypto-js for hashing
 
 const MeasurementLoadingScreen = () => {
   const navigation = useNavigation();
@@ -47,15 +47,11 @@ const MeasurementLoadingScreen = () => {
         // Convert parameters to JSON string
         const parametersJsonString = JSON.stringify(parameters);
 
-        // Step 1: Hash the parameters using SHA-256
-        const hash = crypto.createHash('sha256').update(parametersJsonString).digest('hex');
+        // Step 1: Hash the parameters using SHA-256 with crypto-js
+        const hash = CryptoJS.SHA256(parametersJsonString).toString(CryptoJS.enc.Hex);
 
-        // Step 2: Sign the hash using your private key (replace 'yourPrivateKey' with actual private key)
-        const privateKey = `-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----`;
-        const sign = crypto.createSign('RSA-SHA256');
-        sign.update(hash);
-        const signature = sign.sign(privateKey, 'base64');
-
+        // TODO: Handle signing (if necessary) with backend or other secure methods
+        
         // Get the base64 public key from the dashboard
         const base64publickey = "YOUR_BASE64_PUBLIC_KEY";
 
@@ -70,7 +66,6 @@ const MeasurementLoadingScreen = () => {
         const response = await axios.post('https://services-api.weefizz.ai/api', requestBody, {
           headers: {
             'base64publickey': base64publickey,
-            'base64signature': signature, // Attach the base64 encoded signature
             'Content-Type': 'application/json',
           },
         });
@@ -112,7 +107,7 @@ const MeasurementLoadingScreen = () => {
 
   return (
     <ImageBackground
-      source={require('../assets/WeeFizz page no logo.png')}
+      source={require('../assets/WeeFizz_page_no_logo.png')}
       style={styles.background}
     >
       <View style={styles.container}>

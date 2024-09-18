@@ -1,8 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
-import { Camera, useFrameProcessor, useCameraDevices } from 'react-native-vision-camera';
+import React, { useEffect, useState, useMemo } from 'react';
+import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator, Platform } from 'react-native';
+import { Camera, useFrameProcessor, getCameraDevice } from 'react-native-vision-camera';
 import { useTensorflowModel } from 'react-native-fast-tflite';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useNavigation, useRoute } from '@react-navigation/native';
+
+
+
+function tensorToString(tensor) {
+  return `${tensor.dataType} [${tensor.shape}]`;
+}
+
 
 const CameraFrontPoseScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -12,79 +20,102 @@ const CameraFrontPoseScreen = () => {
   const route = useRoute();
   const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, productUrl } = route.params;
 
-  const devices = useCameraDevices();
-  const device = selectedOption === 'seul' ? devices.front : devices.back;
+  const devices = Camera.getAvailableCameraDevices();
+  const device = selectedOption === 'seul' ? getCameraDevice(devices, 'front') : getCameraDevice(devices, 'back');
 
-  const poseDetection = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
-  const model = poseDetection.state === 'loaded' ? poseDetection.model : undefined;
 
-  const customResize = (frame, targetWidth, targetHeight) => {
-    const scaleX = targetWidth / frame.width;
-    const scaleY = targetHeight / frame.height;
+  const plugin = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
+  
+  const model = plugin.state === 'loaded' ? plugin.model : undefined;
 
-    const resizedFrame = new Uint8Array(targetWidth * targetHeight * 3);
-    for (let y = 0; y < targetHeight; y++) {
-      for (let x = 0; x < targetWidth; x++) {
-        const srcX = Math.floor(x / scaleX);
-        const srcY = Math.floor(y / scaleY);
-        const srcIndex = (srcY * frame.width + srcX) * 3;
-        const destIndex = (y * targetWidth + x) * 3;
-        resizedFrame[destIndex] = frame.data[srcIndex];
-        resizedFrame[destIndex + 1] = frame.data[srcIndex + 1];
-        resizedFrame[destIndex + 2] = frame.data[srcIndex + 2];
-      }
-    }
-    return { width: targetWidth, height: targetHeight, data: resizedFrame };
-  };
+
+  const pixelFormat = Platform.OS === 'ios' ? 'rgb' : 'yuv';
+
 
   useEffect(() => {
-    (async () => {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'authorized');
-    })();
+    const checkCameraPermission = async () => {
+      try {
+        const permissionStatus = await Camera.requestCameraPermission();
+        setHasPermission(permissionStatus !== 'denied');
+      } catch (error) {
+        console.error('Permission error:', error.message);
+      }
+    };
+
+    checkCameraPermission();
   }, []);
+
+
+  useEffect(() => {
+    
+    if (model?.inputs && model?.outputs) {
+  console.log(
+    `Model: ${model.inputs.map(tensorToString)} -> ${model.outputs.map(
+      tensorToString,
+    )}`
+  );
+}
+
+  }, [plugin]);
+
+  const inputTensor = plugin.model?.inputs[0];
+  const inputWidth = inputTensor?.shape[1] ?? 0;
+  const inputHeight = inputTensor?.shape[2] ?? 0;
+  if (inputTensor != null) {
+    console.log(
+      `Input: ${inputTensor.dataType} ${inputWidth} x ${inputHeight}`,
+    );
+  }
+
+  const resize = useResizePlugin();
+
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
-    if (!model) return;
 
-    const resizedFrame = customResize(frame, 192, 192);
+    if (model) {
+      try {
+        
+        const resized = resize(frame, 192, 192);
+        const outputs = model.runSync([resized]);
+        const keypoints = outputs[0];
 
-    const outputs = model.runSync([resizedFrame]);
-    const keypoints = outputs[0];
+        if (keypoints && keypoints.length > 0) {
+          const keypointNames = ['nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear', 'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'];
+          const keypointMap = keypoints.reduce((map, kpt) => {
+            map[kpt.name] = kpt;
+            return map;
+          }, {});
 
-    if (keypoints && keypoints.length > 0) {
-      const poseIsCorrect = checkPose(keypoints);
-      setIsPoseCorrect(poseIsCorrect);
-      setIndicatorSource(
-        poseIsCorrect ? require('../assets/greenlight.png') : require('../assets/orangelight.png')
-      );
+          let PoseIsCorrect = true;
+          for (const name of keypointNames) {
+            if (!keypointMap[name]) {
+              PoseIsCorrect = false;
+              break;
+            }
+          }
+
+          const shoulderDistance = Math.abs(keypointMap['left_shoulder'].x - keypointMap['right_shoulder'].x);
+          const hipDistance = Math.abs(keypointMap['left_hip'].x - keypointMap['right_hip'].x);
+          const wristToShoulderThreshold = 0.2;
+
+          const leftWristDistance = Math.abs(keypointMap['left_wrist'].x - keypointMap['left_shoulder'].x);
+          const rightWristDistance = Math.abs(keypointMap['right_wrist'].x - keypointMap['right_shoulder'].x);
+
+          const wristsAreClose = leftWristDistance < wristToShoulderThreshold && rightWristDistance < wristToShoulderThreshold;
+
+          PoseIsCorrect = wristsAreClose && shoulderDistance > 0.1 && hipDistance > 0.1;
+
+          setIsPoseCorrect(PoseIsCorrect);
+          setIndicatorSource(PoseIsCorrect ? require('../assets/greenlight.png') : require('../assets/orangelight.png'));
+        }
+      } catch (error) {
+        console.error('Error processing frame:', error);
+      }
     }
   }, [model]);
 
-  const checkPose = (keypoints) => {
-    const keypointNames = ['nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear', 'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'];
-    
-    const keypointMap = keypoints.reduce((map, kpt) => {
-      map[kpt.name] = kpt;
-      return map;
-    }, {});
 
-    for (const name of keypointNames) {
-      if (!keypointMap[name]) return false;
-    }
-
-    const shoulderDistance = Math.abs(keypointMap['left_shoulder'].x - keypointMap['right_shoulder'].x);
-    const hipDistance = Math.abs(keypointMap['left_hip'].x - keypointMap['right_hip'].x);
-    const wristToShoulderThreshold = 0.2;
-
-    const leftWristDistance = Math.abs(keypointMap['left_wrist'].x - keypointMap['left_shoulder'].x);
-    const rightWristDistance = Math.abs(keypointMap['right_wrist'].x - keypointMap['right_shoulder'].x);
-    
-    const wristsAreClose = leftWristDistance < wristToShoulderThreshold && rightWristDistance < wristToShoulderThreshold;
-
-    return wristsAreClose && shoulderDistance > 0.1 && hipDistance > 0.1;
-  };
 
   const handleCapture = async () => {
     try {
@@ -127,7 +158,8 @@ const CameraFrontPoseScreen = () => {
         device={device}
         isActive={true}
         frameProcessor={frameProcessor}
-        frameProcessorFps={20}
+        frameProcessorFps={1}
+        pixelFormat={pixelFormat}
       >
         <View style={styles.overlay}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>

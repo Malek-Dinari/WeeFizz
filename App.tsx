@@ -58,7 +58,7 @@ const App = () => {
           <Stack.Screen name="MesurementLoadingScreen" component={MesurementLoadingScreen} options={{ headerShown: false }} />
           <Stack.Screen name="MesurementResultsScreen" component={MesurementResultsScreen} options={{ headerShown: false }} />
           <Stack.Screen name="UpperMeasurementsResultsScreen" component={UpperMeasurementsResultsScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="LowerMeasurementsResultsScreen" component={LowerMeasurementsResultsScreen} options={{ headerShown: false }} />
+          
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

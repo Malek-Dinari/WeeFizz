@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     color: 'black',
     textDecorationLine: 'underline',
     textAlign: 'center',
-    marginTop: 30,
-    marginBottom: 20,
+    marginTop: 25,
+    marginBottom: 10,
   },
   button: {
     marginBottom: 20,

@@ -69,7 +69,7 @@ const MeasurementResultsScreen = () => {
 
       {/* Rescan Button */}
       <TouchableOpacity onPress={navigateToQRScanScreen} style={styles.rescanButton}>
-        <Image source={require('../assets/Rescan_button.png')} style={styles.rescanButtonIcon} />
+        <Image source={require('../assets/Rescan-button.png')} style={styles.rescanButtonIcon} />
       </TouchableOpacity>
 
       {/* Show Rating Popup */}

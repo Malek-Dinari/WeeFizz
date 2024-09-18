@@ -1,41 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Camera } from 'react-native-camera-kit';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import React from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Camera, getCameraDevice, useCodeScanner } from 'react-native-vision-camera';
 import { useNavigation } from '@react-navigation/native';
 
 const QRScanWithCameraScreen = () => {
-  const [cameraPermission, setCameraPermission] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [hasPermission, setHasPermission] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   const navigation = useNavigation();
+ 
 
-  useEffect(() => {
-    const checkCameraPermission = async () => {
-      try {
-        const result = await check(PERMISSIONS.ANDROID.CAMERA);
-        if (result === RESULTS.GRANTED) {
-          setCameraPermission(true);
-        } else {
-          const requestResult = await request(PERMISSIONS.ANDROID.CAMERA);
-          setCameraPermission(requestResult === RESULTS.GRANTED);
-        }
-      } catch (error) {
-        console.error('Error checking camera permission:', error.message);
+  const devices = Camera.getAvailableCameraDevices();
+  const device = getCameraDevice(devices, 'back');
+
+
+  const codeScanner = useCodeScanner({
+    codeTypes: ['qr', 'ean-13'],
+    onCodeScanned: (codes) => {
+      console.log(`Scanned ${codes.length} codes!`)
+  
+
+      if (codes.length > 0) {
+        const qrCodeValue = codes[0]?.content; // Get the first scanned QR code content
+        navigateToSplashScreen(qrCodeValue);
+      } else {
+        Alert.alert('QR code scan failed', 'No QR code detected.');
       }
-      setIsLoading(false);
-    };
+    }
+  })
 
-    checkCameraPermission();
-  }, []);
 
-  const handleQRCodeScan = (event) => {
-    const qrCodeValue = event.nativeEvent.codeStringValue;
+  const handleQRCodeScan = (codes) => {
+    const qrCodeValue = codes[0]?.content;
     if (qrCodeValue) {
       navigateToSplashScreen(qrCodeValue);
     } else {
       Alert.alert('QR code scan failed', 'No QR code detected.');
     }
   };
+
+  React.useEffect(() => {
+    const checkCameraPermission = async () => {
+      try {
+        const permissionStatus = await Camera.requestCameraPermission();
+        setHasPermission(permissionStatus !== 'denied');
+      } catch (error) {
+        console.error('Permission error:', error.message);
+      }
+      setIsLoading(false);
+    };
+
+    checkCameraPermission();
+  }, []);
 
   const navigateToSplashScreen = (productUrl) => {
     navigation.navigate('SplashScreen', { productUrl });
@@ -50,7 +65,7 @@ const QRScanWithCameraScreen = () => {
     );
   }
 
-  if (!cameraPermission) {
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
         <Text style={styles.noAccessText}>No access to camera</Text>
@@ -61,15 +76,22 @@ const QRScanWithCameraScreen = () => {
     );
   }
 
+  if (!device) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.noAccessText}>No camera device found</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Camera
         style={StyleSheet.absoluteFill}
-        scanBarcode={true}
-        onReadCode={handleQRCodeScan}
-        showFrame={true}
-        laserColor="red"
-        frameColor="white"
+        device={device}
+        isActive={true}
+        codeScanner={codeScanner}
+        onCodeScanned={handleQRCodeScan}
       />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>

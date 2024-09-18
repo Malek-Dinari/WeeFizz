@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
     marginTop: 20,
+    marginBottom: 10,
   },
   button: {
     marginBottom: 20,

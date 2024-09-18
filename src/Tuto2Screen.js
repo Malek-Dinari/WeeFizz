@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     color: 'black',
     textDecorationLine: 'underline',
     textAlign: 'center',
-    marginBottom: 120,
+    marginBottom: 20,
   },
   button: {
     marginBottom: 20,

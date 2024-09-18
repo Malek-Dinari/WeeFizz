@@ -63,7 +63,7 @@ const QRScanScreen = ({ navigation }) => {
         setShowErrorPopup(true);
         return;
       }
-      
+
       const response = await fetch(`https://fit-size.com/fitshop/modules/guidetailles/api.php?action=getLogo&product_id=27&category_id=14&address=${url}`);
       const data = await response.json();
 
@@ -133,9 +133,9 @@ const QRScanScreen = ({ navigation }) => {
         {showErrorPopup && (
           <Animated.View style={[styles.popup, { opacity: shakeAnimation }]}>
             <TouchableOpacity onPress={() => setShowErrorPopup(false)} style={styles.closeButton}>
-              <Image source={require('../assets/crossX dark.png')} style={styles.closeIcon} />
+              <Image source={require('../assets/crossX_dark.png')} style={styles.closeIcon} />
             </TouchableOpacity>
-            <Image source={require('../assets/error msg.png')} style={styles.errorIcon} />
+            <Image source={require('../assets/error_msg.png')} style={styles.errorIcon} />
             <Text style={styles.popupTitle}>Erreur</Text>
             <Text style={styles.popupSubtitle}>Il n'y a pas de produit avec cette adresse</Text>
             <TouchableOpacity onPress={() => navigation.push('QRScanScreen')} style={styles.retryButton}>

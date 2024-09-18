@@ -15,7 +15,7 @@ const CGUScreen = () => {
           />
         </TouchableOpacity>
         <Image
-            source={require('../assets/WeeFizz logo 2.png')}
+            source={require('../assets/WeeFizz_logo_2.png')}
             style={styles.logoWeeFizz}
         />
         <Text style={styles.title}>Conditions générales d'utilisation</Text>

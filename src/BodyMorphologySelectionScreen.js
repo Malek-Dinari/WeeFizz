@@ -3,6 +3,10 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
+const ITEM_WIDTH = 264; // Width of a single item (image)
+const ITEM_MARGIN = 16; // Margin between items
+const SNAP_INTERVAL = ITEM_WIDTH + ITEM_MARGIN; // Total interval for snapping
+const HALF_SCREEN_WIDTH = screenWidth / 2;
 
 const morphologies = {
   homme: [
@@ -38,42 +42,13 @@ const BodyMorphologySelectionScreen = () => {
 
   const [selectedMorphology, setSelectedMorphology] = useState(null);
   const scrollViewRef = useRef(null);
+  const [lastScrolledIndex, setLastScrolledIndex] = useState(null); // Track last scrolled index to prevent unnecessary snapping.
 
-  // Use fallback if gender doesn't match any key in morphologies
   const genderMorphologies = morphologies[gender] || morphologies['autres'];
-
-  useEffect(() => {
-    scrollToClosestMorphology();
-  }, );
-
-  const scrollToClosestMorphology = () => {
-    if (!scrollViewRef.current) return;
-
-    const centerOffsetX = screenWidth / 2;
-    let closestIndex = 0;
-    let minDistance = Math.abs(centerOffsetX - (screenWidth - 264) / 2); // Initial distance based on the first item
-
-    genderMorphologies.forEach((morphology, index) => {
-      const itemOffsetX = index * (264 + 16); // Calculate offset of each item
-      const distance = Math.abs(itemOffsetX - centerOffsetX);
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIndex = index;
-      }
-    });
-
-    // Scroll to closest morphology item
-    scrollViewRef.current.scrollTo({
-      x: closestIndex * (264 + 16) - centerOffsetX + 132, // Adjust to center the closest item
-      y: 0,
-      animated: true,
-    });
-  };
 
   const handleMorphologySelect = (morphologyKey) => {
     setSelectedMorphology(morphologyKey);
-    console.log(`Selected morphology: ${morphologyKey}`);
+    console.log('Selected Morphology: ', morphologyKey);
   };
 
   const handleNext = () => {
@@ -91,6 +66,16 @@ const BodyMorphologySelectionScreen = () => {
     }
   };
 
+  const onScrollEnd = (event) => {
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollX / SNAP_INTERVAL);
+
+    if (index !== lastScrolledIndex) {
+      scrollViewRef.current.scrollTo({ x: index * SNAP_INTERVAL, y: 0, animated: true });
+      setLastScrolledIndex(index); // Update last scrolled index
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.innerContainer}>
@@ -103,9 +88,8 @@ const BodyMorphologySelectionScreen = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.morphologyList}
           snapToAlignment="center"
-          snapToInterval={264 + 16} // Adjust snap to center the image including space between images
           decelerationRate="fast"
-          onContentSizeChange={scrollToClosestMorphology} // Ensure scroll to closest item on content size change
+          onMomentumScrollEnd={onScrollEnd} // Snap to the closest item
         >
           {genderMorphologies.map((morphology, index) => (
             <TouchableOpacity
@@ -113,7 +97,7 @@ const BodyMorphologySelectionScreen = () => {
               onPress={() => handleMorphologySelect(morphology.key)}
               style={[
                 styles.morphologyItem,
-                { marginLeft: index === 0 ? (screenWidth - 264) / 2 : 8, marginRight: index === genderMorphologies.length - 1 ? (screenWidth - 264) / 2 : 8 },
+                { marginLeft: index === 0 ? (screenWidth - ITEM_WIDTH) / 2 : 8, marginRight: index === genderMorphologies.length - 1 ? (screenWidth - ITEM_WIDTH) / 2 : 8 },
               ]}
             >
               <Image

@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState} from 'react';
 import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
-import { Camera, useFrameProcessor, useCameraDevices } from 'react-native-vision-camera';
+import { Camera, useFrameProcessor, getCameraDevice } from 'react-native-vision-camera';
 import { useTensorflowModel } from 'react-native-fast-tflite';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as tf from '@tensorflow/tfjs';
@@ -13,8 +13,8 @@ const CameraSidePoseScreen = () => {
   const route = useRoute();
   const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, frontposePhoto, productUrl } = route.params;
 
-  const devices = useCameraDevices();
-  const device = selectedOption === 'seul' ? devices.front : devices.back;
+  const devices = Camera.getAvailableCameraDevices();
+  const device = selectedOption === 'seul' ? getCameraDevice(devices, 'front') : getCameraDevice(devices, 'back');
 
   // Load the pose detection model
   const poseDetection = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
@@ -96,8 +96,8 @@ const CameraSidePoseScreen = () => {
 
   const handleCapture = async () => {
     try {
-      if (cameraRef.current && isPoseCorrect) {
-        const photo = await cameraRef.current.takePhoto({ quality: 0.85, base64: true });
+      if (device.current && isPoseCorrect) {
+        const photo = await device.current.takePhoto({ quality: 0.85, base64: true });
         navigation.navigate('ValidationSidePoseScreen', {
           gender,
           height,
