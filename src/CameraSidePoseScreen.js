@@ -1,103 +1,149 @@
-import React, { useEffect, useState} from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
-import { Camera, useFrameProcessor, getCameraDevice } from 'react-native-vision-camera';
+import React, { useEffect, useState, useMemo } from 'react';
+import { View, Text, Image, StyleSheet, ActivityIndicator, Platform, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import { Camera, getCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
+import { PaintStyle, Skia } from '@shopify/react-native-skia';
 import { useTensorflowModel } from 'react-native-fast-tflite';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import * as tf from '@tensorflow/tfjs';
+import { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import { calculateDistance } from './distanceUtils'; // Assuming you have a utility for distance calculation
+import { getBestFormat } from './formatFilter';
+
+const LINE_WIDTH = 5;
+const VIEW_WIDTH = Dimensions.get('screen').width;
+const POSITION_TEXTE_WIDTH = 389;
+const POSITION_TEXTE_HEIGHT = 132;
+
+function tensorToString(tensor) {
+  return `${tensor.dataType} [${tensor.shape}]`;
+}
 
 const CameraSidePoseScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
-  const [isPoseCorrect, setIsPoseCorrect] = useState(false);
   const [indicatorSource, setIndicatorSource] = useState(require('../assets/orangelight.png'));
+  const poseDetected = useSharedValue(false);
   const navigation = useNavigation();
   const route = useRoute();
-  const { gender, height, weight, hunit, wunit, comfort, selectedMorphology, selectedOption, frontposePhoto, productUrl } = route.params;
+  const {
+    gender,
+    height,
+    weight,
+    hunit,
+    wunit,
+    comfort,
+    selectedMorphology,
+    selectedOption,
+    frontposePhoto,
+    productUrl
+  } = route.params;
 
   const devices = Camera.getAvailableCameraDevices();
-  const device = selectedOption === 'seul' ? getCameraDevice(devices, 'front') : getCameraDevice(devices, 'back');
+  const device = selectedOption === 'seul' ? getCameraDevice(devices, 'side') : getCameraDevice(devices, 'back');
 
-  // Load the pose detection model
-  const poseDetection = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
-  const model = poseDetection.state === 'loaded' ? poseDetection.model : undefined;
+  const plugin = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
+  const model = plugin.state === "loaded" ? plugin.model : undefined;
 
-  // Request camera permission on mount
   useEffect(() => {
-    (async () => {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'authorized');
-    })();
+    const checkCameraPermission = async () => {
+      try {
+        const permissionStatus = await Camera.requestCameraPermission();
+        setHasPermission(permissionStatus !== 'denied');
+      } catch (error) {
+        console.error('Permission error:', error.message);
+      }
+    };
+
+    checkCameraPermission();
   }, []);
 
-  // Custom resizing function (instead of using the vision-camera resize plugin)
-  const resizeImage = (frame, targetWidth, targetHeight) => {
-    const aspectRatio = frame.width / frame.height;
-    const width = targetWidth;
-    const height = targetWidth / aspectRatio;
-    
-    // Resize logic, adapt pixel data
-    return tf.tidy(() => {
-      const tensor = tf.tensor(new Uint8Array(frame.data), [frame.height, frame.width, 3]);
-      const resized = tf.image.resizeBilinear(tensor, [targetHeight, targetWidth]);
-      return resized;
-    });
-  };
-
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
-    if (!model) return;
-
-    // Resize the frame to match the input size for the model
-    const resizedFrame = resizeImage(frame, 192, 192);
-
-    // Run the model
-    const outputs = model.runSync([resizedFrame]);
-
-    // Assuming output is a list of keypoints (adjust if needed)
-    const keypoints = outputs[0];
-
-    if (keypoints && keypoints.length > 0) {
-      const poseIsCorrect = checkPose(keypoints);
-      setIsPoseCorrect(poseIsCorrect);
-      setIndicatorSource(
-        poseIsCorrect
-          ? require('../assets/greenlight.png')
-          : require('../assets/orangelight.png')
-      );
+  useEffect(() => {
+    if (model) {
+      console.log(`Model: ${model.inputs.map(tensorToString)} -> ${model.outputs.map(tensorToString)}`);
     }
   }, [model]);
 
-  // Check if the front pose is correct using 17 COCO keypoints
-  const checkPose = (keypoints) => {
-    const keypointNames = [
-      'nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear',
-      'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist',
-      'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'
-    ];
+  const resize = useResizePlugin();
+  const rotation = Platform.OS === 'ios' ? '0deg' : '270deg';
 
-    const keypointMap = {};
-    keypoints.forEach(k => keypointMap[k.name] = k);
+  const format = useMemo(
+    () => (device ? getBestFormat(device, 480, 6400) : undefined),
+    [device]
+  );
 
-    // Check if all necessary keypoints exist
-    for (const name of keypointNames) {
-      if (!keypointMap[name]) return false;
-    }
+  const SCALE = (format?.videoWidth ?? VIEW_WIDTH) / VIEW_WIDTH;
 
-    // Example logic: Checking if the body posture is symmetric and upright
-    const shoulderAlignmentThreshold = 0.1;
-    const hipAlignmentThreshold = 0.1;
+  const paint = Skia.Paint();
+  paint.setStyle(PaintStyle.Stroke);
+  paint.setColor(Skia.Color('green'));
+  paint.setStrokeWidth(LINE_WIDTH * SCALE);
 
-    const leftShoulderToHipDistance = Math.abs(keypointMap['left_shoulder'].y - keypointMap['left_hip'].y);
-    const rightShoulderToHipDistance = Math.abs(keypointMap['right_shoulder'].y - keypointMap['right_hip'].y);
-    const shouldersAligned = Math.abs(keypointMap['left_shoulder'].x - keypointMap['right_shoulder'].x) < shoulderAlignmentThreshold;
-    const hipsAligned = Math.abs(keypointMap['left_hip'].x - keypointMap['right_hip'].x) < hipAlignmentThreshold;
+  const lines = [
+    [5, 6], [6, 7], [7, 8], // Example lines connecting keypoints (shoulders and elbows)
+    [11, 12], [12, 13], [13, 14], // Example lines connecting keypoints (knees and ankles)
+    [11, 5], [12, 6], [13, 7], // More example lines for additional connections
+    [5, 7], [6, 8], [7, 9], // Connect shoulders to hips, etc.
+  ];
 
-    return shouldersAligned && hipsAligned;
-  };
+  const frameProcessor = useFrameProcessor(
+    (frame) => {
+      'worklet';
+      console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`);
+
+      if (plugin.model) {
+        try {
+          const resizedFrame = resize(frame, { scale: { width: 192, height: 192 }, pixelFormat: 'rgb', dataType: 'uint8', rotation });
+          const outputs = plugin.model.runSync([resizedFrame]);
+          const keypoints = outputs[0];
+
+          console.log(`Keypoints: ${keypoints}`);
+
+          // Draw lines on frame
+          lines.forEach(([start, end]) => {
+            const from = keypoints[start];
+            const to = keypoints[end];
+            if (from && to && from[2] > 0.5 && to[2] > 0.5) {
+              frame.drawLine(
+                from[1] * frame.width,
+                from[0] * frame.height,
+                to[1] * frame.width,
+                to[0] * frame.height,
+                paint
+              );
+            }
+          });
+
+          // Pose validation logic
+          const validatePose = () => {
+            if (keypoints.length === 0) return false;
+
+            // Adjust validation logic based on side pose
+            const shoulderToElbowLeft = calculateDistance(keypoints[5], keypoints[6]);
+            const shoulderToElbowRight = calculateDistance(keypoints[2], keypoints[3]);
+            const shoulderToHipLeft = calculateDistance(keypoints[11], keypoints[5]);
+            const shoulderToHipRight = calculateDistance(keypoints[12], keypoints[2]);
+
+            return shoulderToElbowLeft < 100 && shoulderToElbowRight < 100 && shoulderToHipLeft < 150 && shoulderToHipRight < 150;
+          };
+
+          const isPoseValid = validatePose();
+          poseDetected.value = isPoseValid;
+          setIndicatorSource(isPoseValid ? require('../assets/greenlight.png') : require('../assets/orangelight.png'));
+
+          if (isPoseValid) {
+            handleCapture();
+          }
+        } catch (error) {
+          console.error('Error processing frame:', error);
+        }
+      }
+    },
+    []
+  );
 
   const handleCapture = async () => {
     try {
-      if (device.current && isPoseCorrect) {
-        const photo = await device.current.takePhoto({ quality: 0.85, base64: true });
+      if (poseDetected && device) {
+        const photo = await device.takePhoto({ quality: 0.85, base64: true });
         navigation.navigate('ValidationSidePoseScreen', {
           gender,
           height,
@@ -118,13 +164,18 @@ const CameraSidePoseScreen = () => {
     }
   };
 
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: poseDetected.value ? 1 : 0.5,
+    };
+  });
+
   if (hasPermission === null) {
-    return <View><Text>Requesting camera permission...</Text></View>;
+    return <View style={styles.centered}><Text>Requesting camera permission...</Text></View>;
   }
   if (hasPermission === false) {
-    return <View><Text>No access to camera</Text></View>;
+    return <View style={styles.centered}><Text>No access to camera</Text></View>;
   }
-
   if (!device) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -132,70 +183,88 @@ const CameraSidePoseScreen = () => {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Camera
-        style={StyleSheet.absoluteFill}
+        style={styles.camera}
         device={device}
-        isActive={false}
+        isActive={true}
         frameProcessor={frameProcessor}
-        frameProcessorFps={20}
-      >
-        <View style={styles.overlay}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
+      />
+      <View style={styles.overlay}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/leftarrow.png')} style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.speakerButton}>
+          <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
+        </TouchableOpacity>
+        <Image source={indicatorSource} style={[styles.indicatorImage, { top: 90 }]} />
+        {poseDetected.value && (
+          <View style={styles.centerContent}>
+            <Image source={require('../assets/justeunmoment.png')} style={styles.momentImage} />
+            <ActivityIndicator size="large" color="#ffffff" style={styles.loadingIndicator} />
+          </View>
+        )}
+        <View style={styles.bottomRectangle}>
+          <TouchableOpacity onPress={handleCapture}>
+            <Image
+              source={require('../assets/position_texte.png')}
+              style={styles.rectangleImage}
+            />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.speakerButton}>
-            <Image source={require('../assets/sound_on_speaker.png')} style={styles.icon} />
-          </TouchableOpacity>
-          <Image source={indicatorSource} style={styles.indicatorImage} />
-          {isPoseCorrect && (
-            <View style={styles.bottomRectangle}>
-              <TouchableOpacity onPress={handleCapture}>
-                <Image source={require('../assets/position_texte.png')} style={styles.rectangleImage} />
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
-      </Camera>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  camera: {
     flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
     top: 40,
     left: 20,
+    zIndex: 1,
   },
   speakerButton: {
     position: 'absolute',
     top: 40,
     right: 20,
+    zIndex: 1,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
   },
   indicatorImage: {
-    position: 'absolute',
-    top: 70,
-    right: 20,
-    width: 38,
-    height: 136,
+    width: 60,
+    height: 60,
+  },
+  momentImage: {
+    width: 200,
+    height: 100,
+  },
+  loadingIndicator: {
+    marginTop: 20,
   },
   bottomRectangle: {
     position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+    bottom: 30,
+    justifyContent: 'center',
+    marginBottom: 30,
   },
   rectangleImage: {
-    width: 334,
-    height: 50,
-    borderRadius: 25,
+    width: POSITION_TEXTE_WIDTH,
+    height: POSITION_TEXTE_HEIGHT,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

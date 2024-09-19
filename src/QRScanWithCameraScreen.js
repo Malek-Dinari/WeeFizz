@@ -7,32 +7,42 @@ const QRScanWithCameraScreen = () => {
   const [hasPermission, setHasPermission] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const navigation = useNavigation();
- 
 
   const devices = Camera.getAvailableCameraDevices();
   const device = getCameraDevice(devices, 'back');
 
-
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
     onCodeScanned: (codes) => {
-      console.log(`Scanned ${codes.length} codes!`)
-  
-
-      if (codes.length > 0) {
-        const qrCodeValue = codes[0]?.content; // Get the first scanned QR code content
-        navigateToSplashScreen(qrCodeValue);
-      } else {
-        Alert.alert('QR code scan failed', 'No QR code detected.');
+      console.log(`Scanned ${codes.length} codes!`);
+      for (const code of codes) {
+        console.log(code.type);
       }
+      handleQRCodeScan(codes);
     }
-  })
-
+  });
 
   const handleQRCodeScan = (codes) => {
-    const qrCodeValue = codes[0]?.content;
+    const qrCodeValue = codes[0]?.value;
+
     if (qrCodeValue) {
-      navigateToSplashScreen(qrCodeValue);
+      console.log('Scanned QR Code URL:', qrCodeValue); // Log the URL for debugging
+
+      const expectedUrlStart = 'https://weefizz.app/?uri=https://fit-size.com/fitshop&';
+
+      // Check if the QR code matches the expected format
+      if (qrCodeValue.startsWith(expectedUrlStart)) {
+        try {
+          new URL(qrCodeValue); // Validate the URL format
+          navigateToSplashScreen(qrCodeValue);
+        } catch (error) {
+          console.error('Invalid URL:', qrCodeValue);
+          Alert.alert('Invalid QR code', 'The scanned QR code does not contain a valid URL.');
+        }
+      } else {
+        // If the QR code doesn't match the expected format, navigate to NoProductScreen
+        navigateToNoProductScreen();
+      }
     } else {
       Alert.alert('QR code scan failed', 'No QR code detected.');
     }
@@ -54,6 +64,10 @@ const QRScanWithCameraScreen = () => {
 
   const navigateToSplashScreen = (productUrl) => {
     navigation.navigate('SplashScreen', { productUrl });
+  };
+
+  const navigateToNoProductScreen = () => {
+    navigation.navigate('NoProductScreen');
   };
 
   if (isLoading) {
@@ -91,7 +105,6 @@ const QRScanWithCameraScreen = () => {
         device={device}
         isActive={true}
         codeScanner={codeScanner}
-        onCodeScanned={handleQRCodeScan}
       />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>

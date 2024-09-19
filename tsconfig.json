@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "module": "commonjs",  // or "esnext"
+    "moduleResolution": "node",
     "outDir": "dist",
     "sourceMap": true,
     "baseUrl": ".",

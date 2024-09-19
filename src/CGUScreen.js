@@ -5,10 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 const CGUScreen = () => {
   const navigation = useNavigation();
 
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity onPress={() => navigation.navigate('WelcomeScreen')} style={styles.goBackButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
           <Image 
               source={require('../assets/mark.png')} 
               style={styles.goBackImage} 
@@ -76,23 +77,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
+    color: 'black',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
   },
   sectionTitle: {
+    color: 'black',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
   },
   subsectionTitle: {
+    color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 10,
   },
   text: {
+    color: 'black',
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 10,

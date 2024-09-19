@@ -9,7 +9,7 @@ import QRScanWithCameraScreen from './src/QRScanWithCameraScreen';
 import SplashScreen from './src/SplashScreen';
 import WelcomeScreen from './src/WelcomeScreen';
 import CGUScreen from './src/CGUScreen';
-import TermsConditionsScreenScreen from './src/TermsConditionsScreen';
+import TermsConditionsScreen from './src/TermsConditionsScreen';
 import SexSelectionScreen from './src/SexSelectionScreen';
 import SizeSelectionScreen from './src/SizeSelectionScreen';
 import WeightSelectionScreen from './src/WeightSelectionScreen';
@@ -41,7 +41,7 @@ const App = () => {
           <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
           <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="CGUScreen" component={CGUScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="TermsConditionsScreenScreen" component={TermsConditionsScreenScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="TermsConditionsScreen" component={TermsConditionsScreen} options={{ headerShown: false }} />
           <Stack.Screen name="SexSelectionScreen" component={SexSelectionScreen} options={{ headerShown: false }} />
           <Stack.Screen name="SizeSelectionScreen" component={SizeSelectionScreen} options={{ headerShown: false }} />
           <Stack.Screen name="WeightSelectionScreen" component={WeightSelectionScreen} options={{ headerShown: false }} />

@@ -9,7 +9,7 @@ const WeightSelectionScreen = () => {
   const { gender, height, hunit } = route.params;
 
   const [wunit, setwunit] = useState('kg');
-  const [weight, setWeight] = useState(70);
+  const [weight, setWeight] = useState(60);
   const slidingLineRef = useRef(null);
   const sliderWidth = 315;
   const sliderLeftOffset = 12;
@@ -81,6 +81,10 @@ const WeightSelectionScreen = () => {
     });
   };
 
+  // Determine if the "next" button should be enabled
+  const isNextButtonEnabled = weight !== undefined && wunit === 'kg';
+
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -120,7 +124,11 @@ const WeightSelectionScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={handleNextPress} style={styles.nextButton}>
+      <TouchableOpacity
+        onPress={handleNextPress}
+        style={[styles.nextButton, { opacity: isNextButtonEnabled ? 1 : 0.5 }]} // Conditional opacity
+        disabled={!isNextButtonEnabled} // Disable button if conditions are not met
+      >
         <Image source={require('../assets/Bouton_suivant.png')} style={styles.nextButtonImage} />
       </TouchableOpacity>
     </View>

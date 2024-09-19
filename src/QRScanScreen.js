@@ -16,6 +16,7 @@ import { Camera, useCameraDevices } from 'react-native-vision-camera';
 const QRScanScreen = ({ navigation }) => {
   const [shakeAnimation] = useState(new Animated.Value(0));
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [popupOpacity] = useState(new Animated.Value(0)); // Added for fading animation
   const [url, setUrl] = useState('');
   const [cameraPermission, setCameraPermission] = useState(false);
 
@@ -58,9 +59,14 @@ const QRScanScreen = ({ navigation }) => {
 
   const validateUrl = async () => {
     try {
-      const fitShopUrlPattern = /fit-shop/;
-      if (!fitShopUrlPattern.test(url)) {
+      const requiredPrefix = 'https://weefizz.app/?uri=https://fit-size.com/fitshop&';
+      if (!url.startsWith(requiredPrefix)) {
         setShowErrorPopup(true);
+        Animated.timing(popupOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
         return;
       }
 
@@ -76,6 +82,14 @@ const QRScanScreen = ({ navigation }) => {
       console.error("Error validating URL:", error);
       navigation.push('NoProductScreen');
     }
+  };
+
+  const closeErrorPopup = () => {
+    Animated.timing(popupOpacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setShowErrorPopup(false));
   };
 
   return (
@@ -131,14 +145,14 @@ const QRScanScreen = ({ navigation }) => {
         </View>
 
         {showErrorPopup && (
-          <Animated.View style={[styles.popup, { opacity: shakeAnimation }]}>
-            <TouchableOpacity onPress={() => setShowErrorPopup(false)} style={styles.closeButton}>
+          <Animated.View style={[styles.popup, { opacity: popupOpacity }]}>
+            <TouchableOpacity onPress={closeErrorPopup} style={styles.closeButton}>
               <Image source={require('../assets/crossX_dark.png')} style={styles.closeIcon} />
             </TouchableOpacity>
             <Image source={require('../assets/error_msg.png')} style={styles.errorIcon} />
             <Text style={styles.popupTitle}>Erreur</Text>
-            <Text style={styles.popupSubtitle}>Il n'y a pas de produit avec cette adresse</Text>
-            <TouchableOpacity onPress={() => navigation.push('QRScanScreen')} style={styles.retryButton}>
+            <Text style={styles.popupSubtitle}>L'URL doit commencer par "https://weefizz.app/?uri=https://fit-size.com/fitshop&"</Text>
+            <TouchableOpacity onPress={closeErrorPopup} style={styles.retryButton}>
               <Image source={require('../assets/Bouton_valider_2.png')} style={styles.retryButtonImage} />
             </TouchableOpacity>
           </Animated.View>
