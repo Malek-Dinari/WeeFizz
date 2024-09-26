@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, Image, StyleSheet, ActivityIndicator, Platform, TouchableOpacity, Dimensions, Alert } from 'react-native';
-import { Camera, getCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
+import { Camera, getCameraDevice, useSkiaFrameProcessor } from 'react-native-vision-camera';
 import { PaintStyle, Skia } from '@shopify/react-native-skia';
 import { useTensorflowModel } from 'react-native-fast-tflite';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
@@ -40,8 +40,8 @@ const CameraSidePoseScreen = () => {
   const devices = Camera.getAvailableCameraDevices();
   const device = selectedOption === 'seul' ? getCameraDevice(devices, 'side') : getCameraDevice(devices, 'back');
 
-  const plugin = useTensorflowModel(require('../assets/lite-model-movenet-singlepose-lightning-tflite-int8-4.tflite'));
-  const model = plugin.state === "loaded" ? plugin.model : undefined;
+  const movenet = useTensorflowModel(require('../assets/pose-detection-fast.tflite'));
+  const model = movenet.state === "loaded" ? movenet.model : undefined;
 
   useEffect(() => {
     const checkCameraPermission = async () => {
@@ -84,15 +84,16 @@ const CameraSidePoseScreen = () => {
     [5, 7], [6, 8], [7, 9], // Connect shoulders to hips, etc.
   ];
 
-  const frameProcessor = useFrameProcessor(
+  const frameProcessor = useSkiaFrameProcessor(
     (frame) => {
       'worklet';
+      frame.render();
       console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`);
 
-      if (plugin.model) {
+      if (movenet.model) {
         try {
           const resizedFrame = resize(frame, { scale: { width: 192, height: 192 }, pixelFormat: 'rgb', dataType: 'uint8', rotation });
-          const outputs = plugin.model.runSync([resizedFrame]);
+          const outputs = movenet.model.runSync([resizedFrame]);
           const keypoints = outputs[0];
 
           console.log(`Keypoints: ${keypoints}`);
