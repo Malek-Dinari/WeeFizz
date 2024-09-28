@@ -1,79 +1,75 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+Clothing Product Size Recommendation App
+This mobile app allows users to scan a clothing product QR code, input their parameters (height, sex, and morphology), take front and side pose photos, and receive a size recommendation. The app integrates Shopify's Skia library for UI rendering and uses Frank's API for product and recommendation services.
 
-# Getting Started
+Features
+📷 QR Code Scanning: Scan a product's QR code to retrieve relevant information from the shop.
+📐 User Parameters Input: Users enter their height, sex, and body morphology for personalized size recommendations.
+🖼️ Front and Side Photos: Capture front and side photos to improve the recommendation system's accuracy.
+🔍 Product Lookup: Perform product lookups directly from the shop.
+Libraries and Tools Used
+Skia: UI rendering library provided by Shopify.
+Frank's API (Welyne): Handles HTTP (REST API) methods for retrieving recommendations and performing product lookups.
+Getting Started
+Prerequisites
+Ensure you have the following installed:
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+Android Studio or Xcode (for iOS)
+A valid API key for Frank's API (Welyne)
+Node.js (for package management)
+Installation
+Clone the repository:
 
-## Step 1: Start the Metro Server
+bash
+Copy code
+git clone https://github.com/YourUsername/ClothingRecommendationApp.git
+Install dependencies:
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+bash
+Copy code
+npm install
+Add your API key:
 
-To start Metro, run the following command from the _root_ of your React Native project:
+bash
+Copy code
+export API_KEY='your-api-key-here'
+Run the project:
 
-```bash
-# using npm
+bash
+Copy code
 npm start
+Usage
+Scan QR Code: Use the app's built-in QR code scanner to capture the product's code.
+Input Parameters: Fill in the height, sex, and morphology details.
+Take Photos: Capture your front and side photos.
+Get Size Recommendation: The app provides a recommended size based on the input parameters and photos.
+API Integration
+The app integrates with Frank’s API to:
 
-# OR using Yarn
-yarn start
-```
+Retrieve size recommendations based on user input.
+Fetch product details from the shop.
+Example API request to retrieve product details:
 
-## Step 2: Start your Application
+bash
+Copy code
+curl -X GET "https://api.welyne.com/v1/product/{product-id}" \
+     -H "Authorization: Bearer {API_KEY}"
+Unfinished Tasks
+ Integrate recommendation API: Complete the backend connection to Frank's API for live size recommendations.
+ Improve camera functionality: Optimize front and side pose capturing for enhanced accuracy.
+ Error handling for API calls: Implement better error handling for failed product lookups and size recommendations.
+Contributing
+We welcome contributions! Please fork the repository and submit a pull request for any changes or improvements.
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+Fork the project.
+Create your feature branch (git checkout -b feature/your-feature-name).
+Commit your changes (git commit -m 'Add some feature').
+Push to the branch (git push origin feature/your-feature-name).
+Open a pull request.
+License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### For Android
+Contact
+For any questions or support, feel free to reach out:
 
-```bash
-# using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### For iOS
-
-```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Email: dinari.malek1@gmail.com
+LinkedIn: Malek Dinari
