@@ -37,8 +37,8 @@ This project is a mobile application that allows users to scan clothing product 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/clothing-size-recommendation-app.git
-   cd clothing-size-recommendation-app
+   git clone https://github.com/Malek-Dinari/WeeFizz.git
+   cd WeeFizz
    
 2. Install dependencies:
 ```bash
