@@ -6,7 +6,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
 import { runOnJS } from 'react-native-reanimated';
 
-const App = () => {
+const CameraFrontPoseScreen = () => {
   const [model, setModel] = useState(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [device, setDevice] = useState(null); // To be handled by device selector logic
@@ -65,4 +65,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default CameraFrontPoseScreen;
