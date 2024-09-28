@@ -1,75 +1,75 @@
-Clothing Product Size Recommendation App
-This mobile app allows users to scan a clothing product QR code, input their parameters (height, sex, and morphology), take front and side pose photos, and receive a size recommendation. The app integrates Shopify's Skia library for UI rendering and uses Frank's API for product and recommendation services.
+# WeeFizz : A Clothing Size Recommendation App
 
-Features
-📷 QR Code Scanning: Scan a product's QR code to retrieve relevant information from the shop.
-📐 User Parameters Input: Users enter their height, sex, and body morphology for personalized size recommendations.
-🖼️ Front and Side Photos: Capture front and side photos to improve the recommendation system's accuracy.
-🔍 Product Lookup: Perform product lookups directly from the shop.
-Libraries and Tools Used
-Skia: UI rendering library provided by Shopify.
-Frank's API (Welyne): Handles HTTP (REST API) methods for retrieving recommendations and performing product lookups.
-Getting Started
-Prerequisites
-Ensure you have the following installed:
+This project is a mobile application that allows users to scan clothing product QR codes, take measurements through photos, and get size recommendations based on their body type. The app uses a combination of QR code scanning and user inputs (such as height, sex, and morphology) to generate personalized size suggestions.
 
-Android Studio or Xcode (for iOS)
-A valid API key for Frank's API (Welyne)
-Node.js (for package management)
-Installation
-Clone the repository:
+## Features
 
-bash
-Copy code
-git clone https://github.com/YourUsername/ClothingRecommendationApp.git
-Install dependencies:
+- **Scan a clothing product QR code** with the camera to identify the product.
+- **Input personal details** like height, sex, and morphology.
+- **Take photos in front and side poses** for measurement processing.
+- **Generate size recommendations** based on the user's body type and the specific clothing item.
+- **View the product's size and fit information** in the app.
+- **Integration with Frank’s API (Welyne)** to get size recommendation results.
 
-bash
-Copy code
-npm install
-Add your API key:
+## Unfinished Tasks
 
-bash
-Copy code
-export API_KEY='your-api-key-here'
-Run the project:
+- [ ] Implement HTTP methods to interact with Frank's API for size recommendations.
+- [ ] Complete the shop product lookup feature within the app.
+- [ ] Improve user interface and input validation.
+- [ ] Debug and optimize photo measurement processing.
 
-bash
-Copy code
-npm start
-Usage
-Scan QR Code: Use the app's built-in QR code scanner to capture the product's code.
-Input Parameters: Fill in the height, sex, and morphology details.
-Take Photos: Capture your front and side photos.
-Get Size Recommendation: The app provides a recommended size based on the input parameters and photos.
-API Integration
-The app integrates with Frank’s API to:
+## Requirements
 
-Retrieve size recommendations based on user input.
-Fetch product details from the shop.
-Example API request to retrieve product details:
+- Mobile device with a camera
+- Internet connection for API calls
 
-bash
-Copy code
-curl -X GET "https://api.welyne.com/v1/product/{product-id}" \
-     -H "Authorization: Bearer {API_KEY}"
-Unfinished Tasks
- Integrate recommendation API: Complete the backend connection to Frank's API for live size recommendations.
- Improve camera functionality: Optimize front and side pose capturing for enhanced accuracy.
- Error handling for API calls: Implement better error handling for failed product lookups and size recommendations.
-Contributing
-We welcome contributions! Please fork the repository and submit a pull request for any changes or improvements.
+## Tech Stack
 
-Fork the project.
-Create your feature branch (git checkout -b feature/your-feature-name).
-Commit your changes (git commit -m 'Add some feature').
-Push to the branch (git push origin feature/your-feature-name).
-Open a pull request.
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
+- **Frontend:** React Native
+- **Backend:** Node.js, Express
+- **APIs:** Frank's API (Welyne)
+- **Libraries:**
+  - Skia (Shopify) for rendering and graphics processing
+  - React Native Camera for QR code scanning
+  - React Native Elements for UI components
 
-Contact
-For any questions or support, feel free to reach out:
+## Installation
 
-Email: dinari.malek1@gmail.com
-LinkedIn: Malek Dinari
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/clothing-size-recommendation-app.git
+   cd clothing-size-recommendation-app
+   
+2. Install dependencies:
+```bash
+   npm install
+```
+Run on your device:
+```bash
+
+npx react-native run-android  # for Android
+npx react-native run-ios      # for iOS
+```
+
+## Future Improvements
+
+- Integration of Recommendation API: Full integration of Asma’s recommendation API to automate sizing.
+- Shop Product Lookup: Direct product lookup from the shop inside the app using Welyne’s API.
+- Optimize Camera and Pose Detection: Further improvements in pose detection accuracy for better size recommendations.
+
+## Known Issues
+
+CMake Debug Errors: Issues with the fast-tflite library when switching between branches. If you encounter issues, a rebuild from a fresh clone may resolve them.
+
+## Contribution
+
+I'm no longer actively working on this project due to other commitments, but feel free to fork the repository and submit pull requests.
+
+For any inquiries, feel free to reach out to me at:
+
+- Email: dinari.malek1@gmail.com
+- LinkedIn: [Malek Dinari](https://www.linkedin.com/in/malek-dinari-99b431263/)
+  
+## License
+
+This project is licensed under the MIT License.
