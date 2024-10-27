@@ -1,10 +1,12 @@
 # WeeFizz : A Clothing Size Recommendation App
 
-![WeeFizz Logo](assets/WeeFizz_logo.png "WeeFizz Logo")
+![WeeFizz Logo](assets/WeeFizz_Logo.png "WeeFizz Logo")
 
 This project is a mobile application that allows users to scan clothing product QR codes, take measurements through photos, and get size recommendations based on their body type. The app uses a combination of QR code scanning and user inputs (such as height, sex, and morphology) to generate personalized size suggestions.
 
 ## Features
+
+![QR Code Scanning](assets/bg_QR_scan.png "QR Code Scanning Example")
 
 - **Scan a clothing product QR code** with the camera to identify the product.
 - **Input personal details** like height, sex, and morphology.
